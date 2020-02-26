@@ -1,8 +1,22 @@
-import geojson
+from geojson import Point
 import math
 
 
-def bearing(start, end, final=False):
+def bearing(start: Point, end: Point, final=False):
+    """
+    Takes two {@link Point} and finds the geographic bearing between them,
+    :param Point start: Start point
+    :param Point end: Ending point
+    :param boolean final:
+    :return: calculates the final bearing if true
+
+    Example :-
+    from turfpy import measurement
+    from geojson import Point
+    start = Point((-75.343, 39.984))
+    end = Point((-75.534, 39.123))
+    measurement.bearing(start,end)
+    """
     if final:
         return calculate_final_bearing(start, end)
     start_coordinates = start['coordinates']
