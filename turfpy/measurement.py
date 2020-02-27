@@ -8,7 +8,7 @@ def bearing(start: Point, end: Point, final=False):
     :param Point start: Start point
     :param Point end: Ending point
     :param boolean final:
-    :return: calculates the final bearing if true
+    :return float: calculates the final bearing if true
 
     Example :-
     from turfpy import measurement
