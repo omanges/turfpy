@@ -26,7 +26,8 @@ def bearing(start: Point, end: Point, final=False):
     lat1 = radians(float(start_coordinates[1]))
     lat2 = radians(float(end_coordinates[1]))
 
-    a = sin(lon2 - lon1) * sin(lat2)
+    a = sin(lon2 - lon1) * cos(lat2)
+
     b = (cos(lat1) * sin(lat2)) - (sin(lat1) * cos(lat2) * cos(lon2 - lon1))
     return degrees(atan2(a, b))
 
