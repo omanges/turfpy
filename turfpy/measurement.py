@@ -85,6 +85,23 @@ def distance(point1: Point, point2: Point, unit: str = 'km'):
 # ----------- Area --------------#
 
 def area(geojson: Union[Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon, Feature, FeatureCollection]):
+    """
+    This function calculates the area of the Geojson object given as input.
+    :param geojson: Geojson object for which area is to be found
+    :return: area for the given Geojson object
+    Example :-
+
+    >>> from turfpy.measurement import area
+    >>> from geojson import Feature, FeatureCollection
+
+    >>> geometry_1 = {"coordinates": [[[0, 0], [0, 10], [10, 10], [10, 0], [0, 0]]], "type": "Polygon"};
+    >>> geometry_2 = {"coordinates": [[[2.38, 57.322], [23.194, -20.28], [-120.43, 19.15], [2.38, 57.322]]], "type": "Polygon"};
+    >>> feature_1 = Feature(geometry=geometry_1)
+    >>> feature_2 = Feature(geometry=geometry_2)
+    >>> feature_collection = FeatureCollection([feature_1, feature_2])
+
+    >>> area(feature_collection)
+    """
     return geom_reduce(geojson, 0)
 
 
