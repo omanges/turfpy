@@ -1,7 +1,7 @@
 from geojson import Point, Polygon, MultiPolygon, MultiPoint, LineString, MultiLineString, FeatureCollection, Feature
 from math import radians, sin, cos, degrees, atan2, asin, sqrt
 from typing import Union
-from turfpy.meta import geom_reduce
+from turfpy.meta import geom_reduce, coord_each
 
 
 # ---------- Bearing -----------#
@@ -106,3 +106,25 @@ def area(geojson: Union[
 
 
 # -------------------------------#
+
+# ----------- BBox --------------#
+result = [float('inf'), float('inf'), float('-inf'), float('-inf')]
+
+
+def bbox(geojson):
+    global result
+    result = [float('inf'), float('inf'), float('-inf'), float('-inf')]
+    coord_each(geojson, callback_coord_each)
+    return result
+
+
+def callback_coord_each(coord):
+    global result
+    if result[0] > coord[0]:
+        result[0] = coord[0]
+    if result[1] > coord[1]:
+        result[1] = coord[1]
+    if result[2] < coord[0]:
+        result[2] = coord[0]
+    if result[3] < coord[1]:
+        result[3] = coord[1]
