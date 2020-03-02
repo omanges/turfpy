@@ -1,6 +1,6 @@
 from geojson import Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon, GeometryCollection, Feature, \
     FeatureCollection
-from turfpy.measurement import bbox
+from turfpy.measurement import bbox, bbox_polygon
 
 
 def test_bbox_point():
@@ -88,3 +88,10 @@ def test_feature_collection():
     assert bb[1] == 10.69
     assert bb[2] == 8.923
     assert bb[3] == 51.21
+
+
+def test_bbox_polygon_feature():
+    p = Polygon([[(2.38, 57.322), (23.194, -20.28), (-120.43, 19.15), (2.38, 57.322)]])
+    bbox_poly = bbox_polygon(bbox(p))
+    assert bbox_poly['geometry']['coordinates'] == [
+        [[-120.43, -20.28], [23.194, -20.28], [23.194, 57.322], [-120.43, 57.322], [-120.43, -20.28]]]

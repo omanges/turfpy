@@ -112,6 +112,18 @@ result = [float('inf'), float('inf'), float('-inf'), float('-inf')]
 
 
 def bbox(geojson):
+    """
+    This function is used to generate bounding box coordinates for given geojson
+    :param geojson: Geojson object for which bounding box is to be found
+    :return: bounding box for the given Geojson object
+    Example :-
+
+    >>> from turfpy.measurement import bbox
+    >>> from geojson import Polygon
+
+    >>> p = Polygon([[(2.38, 57.322), (23.194, -20.28), (-120.43, 19.15), (2.38, 57.322)]])
+    >>> bb = bbox(p)
+    """
     global result
     result = [float('inf'), float('inf'), float('-inf'), float('-inf')]
     coord_each(geojson, callback_coord_each)
@@ -128,3 +140,42 @@ def callback_coord_each(coord):
         result[2] = coord[0]
     if result[3] < coord[1]:
         result[3] = coord[1]
+
+
+# -------------------------------#
+
+# ----------- BBoxPolygon --------------#
+
+def bbox_polygon(bbox: list, properties:dict={}) -> Feature:
+    """
+    To generate a Polygon Feature for the bounding box generated using bbox.
+    :param bbox: bounding box generated for a geojson.
+    :return: polygon for the given bounding box coordinates
+    Example :-
+    >>> from turfpy.measurement import bbox
+    >>> from geojson import Polygon
+
+    >>> p = Polygon([[(2.38, 57.322), (23.194, -20.28), (-120.43, 19.15), (2.38, 57.322)]])
+    >>> bb = bbox(p)
+    >>> feature = bbox_polygon(bb)
+    """
+    if 'properties' not in properties:
+        properties['properties'] = {}
+    if 'id' not in properties:
+        properties['id'] = ''
+    west = float(bbox[0])
+    south = float(bbox[1])
+    east = float(bbox[2])
+    north = float(bbox[3])
+
+    if len(bbox) == 6:
+        raise Exception("bbox-polygon does not support BBox with 6 positions")
+
+    low_left = (west, south)
+    top_left = (west, north)
+    top_right = (east, north)
+    low_right = (east, south)
+
+    bbox_polygon = Polygon([[low_left, low_right, top_right, top_left, low_left]])
+    feature_bbox = Feature(geometry=bbox_polygon, properties=properties['properties'], id=properties['id'])
+    return feature_bbox
