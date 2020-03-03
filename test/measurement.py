@@ -1,6 +1,6 @@
 from geojson import Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon, GeometryCollection, Feature, \
     FeatureCollection
-from turfpy.measurement import bbox, bbox_polygon
+from turfpy.measurement import bbox, bbox_polygon, center, envelope
 
 
 def test_bbox_point():
@@ -95,3 +95,22 @@ def test_bbox_polygon_feature():
     bbox_poly = bbox_polygon(bbox(p))
     assert bbox_poly['geometry']['coordinates'] == [
         [[-120.43, -20.28], [23.194, -20.28], [23.194, 57.322], [-120.43, 57.322], [-120.43, -20.28]]]
+
+
+def test_center_feature():
+    f1 = Feature(geometry=Point((-97.522259, 35.4691)))
+    f2 = Feature(geometry=Point((-97.502754, 35.463455)))
+    f3 = Feature(geometry=Point((-97.508269, 35.463245)))
+    feature_collection = FeatureCollection([f1, f2, f3])
+    feature = center(feature_collection)
+    assert feature['geometry']['coordinates'] == [-97.512507, 35.466172]
+
+
+def test_envelope():
+    f1 = Feature(geometry=Point((-75.343, 39.984)))
+    f2 = Feature(geometry=Point((-75.833, 39.284)))
+    f3 = Feature(geometry=Point((-75.534, 39.123)))
+    feature_collection = FeatureCollection([f1, f2, f3])
+    feature = envelope(feature_collection)
+    assert feature['geometry']['coordinates'] == [
+        [[-75.833, 39.123], [-75.343, 39.123], [-75.343, 39.984], [-75.833, 39.984], [-75.833, 39.123]]]

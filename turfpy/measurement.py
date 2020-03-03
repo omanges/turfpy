@@ -146,9 +146,10 @@ def callback_coord_each(coord):
 
 # ----------- BBoxPolygon --------------#
 
-def bbox_polygon(bbox: list, properties:dict={}) -> Feature:
+def bbox_polygon(bbox: list, properties: dict = {}) -> Feature:
     """
     To generate a Polygon Feature for the bounding box generated using bbox.
+    :param properties: properties to be added to the returned feature
     :param bbox: bounding box generated for a geojson.
     :return: polygon for the given bounding box coordinates
     Example :-
@@ -159,10 +160,6 @@ def bbox_polygon(bbox: list, properties:dict={}) -> Feature:
     >>> bb = bbox(p)
     >>> feature = bbox_polygon(bb)
     """
-    if 'properties' not in properties:
-        properties['properties'] = {}
-    if 'id' not in properties:
-        properties['id'] = ''
     west = float(bbox[0])
     south = float(bbox[1])
     east = float(bbox[2])
@@ -177,5 +174,82 @@ def bbox_polygon(bbox: list, properties:dict={}) -> Feature:
     low_right = (east, south)
 
     bbox_polygon = Polygon([[low_left, low_right, top_right, top_left, low_left]])
-    feature_bbox = Feature(geometry=bbox_polygon, properties=properties['properties'], id=properties['id'])
+    feature_bbox = Feature(geometry=bbox_polygon)
+
+    if 'properties' in properties:
+        feature_bbox.properties = properties['properties']
+    elif 'properties' not in properties:
+        feature_bbox.properties = {}
+
+    if 'id' in properties:
+        feature_bbox.id = properties['id']
+
+    if 'bbox' in properties:
+        feature_bbox.bbox = properties['bbox']
+
     return feature_bbox
+
+
+# -------------------------------#
+
+# ----------- Center --------------#
+
+def center(geojson, properties: dict = {}) -> Feature:
+    """
+    Takes a {@link Feature} or {@link FeatureCollection} and returns the absolute center point of all features.
+    :param geojson: geojson GeoJSON to be centered
+    :param properties: Optional parameters to be set to the generated feature
+    :return: Point feature for the center
+    Example :-
+    >>> from turfpy.measurement import center
+    >>> from geojson import Feature, FeatureCollection
+
+    >>> f1 = Feature(geometry=Point((-97.522259, 35.4691)))
+    >>> f2 = Feature(geometry=Point((-97.502754, 35.463455)))
+    >>> f3 = Feature(geometry=Point((-97.508269, 35.463245)))
+    >>> feature_collection = FeatureCollection([f1, f2, f3])
+    >>> feature = center(feature_collection)
+    """
+    bounding_box = bbox(geojson)
+    x = (bounding_box[0] + bounding_box[2]) / 2;
+    y = (bounding_box[1] + bounding_box[3]) / 2;
+
+    point = Point((x, y))
+
+    center_feature = Feature(geometry=point)
+
+    if 'properties' in properties:
+        center_feature.properties = properties['properties']
+    elif 'properties' not in properties:
+        center_feature.properties = {}
+
+    if 'id' in properties:
+        center_feature.id = properties['id']
+
+    if 'bbox' in properties:
+        center_feature.bbox = properties['bbox']
+
+    return center_feature
+
+
+# -------------------------------#
+
+# ----------- Envelope --------------#
+
+def envelope(geojson) -> Feature:
+    """
+    Takes any number of features and returns a rectangular {@link Polygon} that encompasses all vertices.
+    :param geojson: geojson input features for which envelope to be generated
+    :return:
+    Example :-
+    >>> from turfpy.measurement import envelope
+    >>> from geojson import Feature, FeatureCollection
+
+    >>> f1 = Feature(geometry=Point((-97.522259, 35.4691)))
+    >>> f2 = Feature(geometry=Point((-97.502754, 35.463455)))
+    >>> f3 = Feature(geometry=Point((-97.508269, 35.463245)))
+    >>> feature_collection = FeatureCollection([f1, f2, f3])
+    >>> feature = envelope(feature_collection)
+    """
+    return bbox_polygon(bbox(geojson))
+# -------------------------------#
