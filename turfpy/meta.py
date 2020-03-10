@@ -1,13 +1,26 @@
 from math import sin, pi
+from geojson import Feature, LineString
 
 RADIUS = 6378137
 
 
 def geom_reduce(geojson, initial_value_param):
-    global initial_value
-    global previous_value
     initial_value = initial_value_param
     previous_value = initial_value_param
+
+    def callback_geom_each(current_geometry, feature_index, feature_properties, feature_bbox, feature_id):
+        nonlocal initial_value
+        nonlocal previous_value
+
+        def callback_geom_reduce(value, geom):
+            return value + calculate_area(geom)
+
+        if feature_index == 0 and initial_value:
+            previous_value = current_geometry
+        else:
+            previous_value = callback_geom_reduce(previous_value, current_geometry)
+        return previous_value
+
     geom_each(geojson, callback_geom_each)
     return previous_value
 
@@ -23,6 +36,7 @@ def geom_each(geojson, callback):
     is_feature_collection = geojson['type'] == 'FeatureCollection'
     is_feature = geojson['type'] == 'Feature'
     stop = len(geojson['features']) if is_feature_collection else 1
+
     for i in range(0, stop):
         if is_feature_collection:
             geometry_maybe_collection = geojson['features'][i]['geometry']
@@ -74,24 +88,6 @@ def geom_each(geojson, callback):
             else:
                 raise Exception('Unknown Geometry Type')
         feature_index += feature_index + 1
-
-
-def callback_geom_each(current_geometry, feature_index, feature_properties, feature_bbox, feature_id):
-    global initial_value
-    global previous_value
-    if feature_index == 0 and initial_value:
-        previous_value = current_geometry
-    else:
-        previous_value = callback_geom_reduce(previous_value, current_geometry)
-    return previous_value
-
-
-def callback_geom_reduce(value, geom):
-    return value + calculate_area(geom)
-
-
-initial_value = ''
-previous_value = ''
 
 
 def calculate_area(geom) -> float:
@@ -199,14 +195,14 @@ def coord_each(geojson, callback, excludeWrapCoord=None):
                 if geom_type == 'Point':
                     # if not callback(coords):
                     #     return False
-                    callback(coords)
+                    callback(coords, coord_index, feature_index, multi_feature_index, geometry_index)
                     coord_index += coord_index + 1
                     multi_feature_index += multi_feature_index + 1
                 elif geom_type == 'LineString' or geom_type == 'MultiPoint':
                     for j in range(0, len(coords)):
                         # if not callback(coords[j]):
                         #     return False
-                        callback(coords[j])
+                        callback(coords[j], coord_index, feature_index, multi_feature_index, geometry_index)
                         coord_index += coord_index + 1
                         if geom_type == 'MultiPoint':
                             multi_feature_index += multi_feature_index + 1
@@ -217,7 +213,7 @@ def coord_each(geojson, callback, excludeWrapCoord=None):
                         for k in range(0, len(coords[j]) - wrapShrink):
                             # if not callback(coords[j][k]):
                             #     return False
-                            callback(coords[j][k])
+                            callback(coords[j][k], coord_index, feature_index, multi_feature_index, geometry_index)
                             coord_index += coord_index + 1
                         if geom_type == 'MultiLineString':
                             multi_feature_index += multi_feature_index + 1
@@ -232,7 +228,8 @@ def coord_each(geojson, callback, excludeWrapCoord=None):
                             for l in range(0, len(coords[j][k]) - wrapShrink):
                                 # if not callback(coords[j][k][l]):
                                 #     return False
-                                callback(coords[j][k][l])
+                                callback(coords[j][k][l], coord_index, feature_index, multi_feature_index,
+                                         geometry_index)
                                 coord_index += coord_index + 1
                             geometry_index += geometry_index + 1
                         multi_feature_index += multi_feature_index + 1
@@ -242,3 +239,100 @@ def coord_each(geojson, callback, excludeWrapCoord=None):
                             return False
                 else:
                     raise Exception('Unknown Geometry Type')
+
+
+def segment_reduce(geojson, callback, initial_value=None):
+    previous_value = initial_value
+    started = False
+
+    def callback_segment_each(current_segment, feature_index, multi_feature_index, geometry_index, segment_index):
+        nonlocal started
+        nonlocal previous_value
+        if not started and (not initial_value and initial_value != 0):
+            previous_value = current_segment
+        else:
+            previous_value = callback(previous_value, current_segment)
+        started = True
+        return True
+
+    segment_each(geojson, callback_segment_each)
+
+    return previous_value
+
+
+def segment_each(geojson, callback):
+    def callback_flatten_each(feature, feature_index, multi_feature_index):
+        segment_index = 0
+
+        if not feature['geometry']:
+            return
+
+        type = feature['geometry']['type']
+
+        if type == 'Point' or type == 'MultiPoint':
+            return
+
+        previous_coords = None
+        previous_feature_index = 0
+        previous_multi_index = 0
+        prev_geom_index = 0
+
+        def callback_coord_each(current_coord, coord_index, feature_index_coord, multi_part_index_coord,
+                                geometry_index):
+            nonlocal previous_coords
+            nonlocal previous_feature_index
+            nonlocal previous_multi_index
+            nonlocal prev_geom_index
+            nonlocal segment_index
+            if not previous_coords or feature_index > previous_feature_index or multi_part_index_coord > previous_multi_index or geometry_index > prev_geom_index:
+                previous_coords = current_coord
+                previous_feature_index = feature_index
+                previous_multi_index = multi_part_index_coord
+                prev_geom_index = geometry_index
+                segment_index = 0
+                return
+            ls = LineString([previous_coords, current_coord])
+            current_segment = Feature(geometry=ls, properties=feature['properties'] if feature['properties'] else {})
+            if not callback(current_segment, feature_index, multi_feature_index, geometry_index, segment_index):
+                return False
+            segment_index = segment_index + 1
+            previous_coords = current_coord
+
+        if not coord_each(feature, callback_coord_each):
+            return False
+
+    flatten_each(geojson, callback_flatten_each)
+
+
+def flatten_each(geojson, callback):
+    def callback_geom_each(geometry, feature_index, properties, bbox, id):
+        if not geometry:
+            type = None
+        else:
+            type = geometry['type']
+
+        if not type or type == 'Point' or type == 'LineString' or type == 'Polygon':
+            if not callback(Feature(geometry=geometry, bbox=bbox, id=id), feature_index, 0):
+                return False
+            return True
+
+        geom_type = ''
+
+        if type == 'MultiPoint':
+            geom_type = 'Point'
+        elif type == 'MultiLineString':
+            geom_type = 'LineString'
+        elif type == 'MultiPolygon':
+            geom_type = 'Polygon'
+
+        for multi_feature_index in range(0, len(geometry['coordinates'])):
+            coordinate = geometry['coordinates'][multi_feature_index]
+            geom = {
+                'type': geom_type,
+                'coordinates': coordinate
+            }
+            if not callback(Feature(geometry=geom, properties=properties), feature_index, multi_feature_index):
+                return False
+        return True
+
+    geom_each(geojson, callback_geom_each)

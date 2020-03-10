@@ -1,7 +1,7 @@
 from geojson import Point, Polygon, MultiPolygon, MultiPoint, LineString, MultiLineString, FeatureCollection, Feature
-from math import radians, sin, cos, degrees, atan2, asin, sqrt
+from math import radians, sin, cos, degrees, atan2, asin, sqrt, pow
 from typing import Union
-from turfpy.meta import geom_reduce, coord_each
+from turfpy.meta import geom_reduce, coord_each, segment_reduce
 
 
 # ---------- Bearing -----------#
@@ -65,18 +65,24 @@ def distance(point1: Point, point2: Point, unit: str = 'km'):
 
     :return: The distance between the two points in the requested unit, as a float.
     """
-    avg_earth_radius_km = 6371.0088
-    conversions = {'km': 1.0, 'm': 1000.0, 'mi': 0.621371192,
-                   'ft': 3280.839895013, 'in': 39370.078740158
+    avg_earth_radius_km = 6371008.8
+    conversions = {'km': 0.001, 'm': 1.0, 'mi': 0.000621371192,
+                   'ft': 3.28084, 'in': 39.370
                    }
-    lat1, lon1 = point1['coordinates']
-    lat2, lon2 = point2['coordinates']
+    coordinates1 = point1['coordinates']
+    coordinates2 = point2['coordinates']
 
-    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-    lat = lat2 - lat1
-    lon = lon2 - lon1
-    d = sin(lat * 0.5) ** 2 + cos(lat1) * cos(lat2) * sin(lon * 0.5) ** 2
-    return 2 * avg_earth_radius_km * conversions[unit] * asin(sqrt(d))
+    dLat = radians((coordinates2[1] - coordinates1[1]))
+
+    dLon = radians((coordinates2[0] - coordinates1[0]))
+
+    lat1 = radians(coordinates1[1])
+
+    lat2 = radians(coordinates2[1])
+
+    a = pow(sin(dLat / 2), 2) + pow(sin(dLon / 2), 2) * cos(lat1) * cos(lat2)
+    b = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return b * conversions[unit] * avg_earth_radius_km
 
 
 # -------------------------------#
@@ -108,7 +114,6 @@ def area(geojson: Union[
 # -------------------------------#
 
 # ----------- BBox --------------#
-result = [float('inf'), float('inf'), float('-inf'), float('-inf')]
 
 
 def bbox(geojson):
@@ -124,22 +129,21 @@ def bbox(geojson):
     >>> p = Polygon([[(2.38, 57.322), (23.194, -20.28), (-120.43, 19.15), (2.38, 57.322)]])
     >>> bb = bbox(p)
     """
-    global result
     result = [float('inf'), float('inf'), float('-inf'), float('-inf')]
+
+    def callback_coord_each(coord, coord_index, feature_index, multi_feature_index, geometry_index):
+        nonlocal result
+        if result[0] > coord[0]:
+            result[0] = coord[0]
+        if result[1] > coord[1]:
+            result[1] = coord[1]
+        if result[2] < coord[0]:
+            result[2] = coord[0]
+        if result[3] < coord[1]:
+            result[3] = coord[1]
+
     coord_each(geojson, callback_coord_each)
     return result
-
-
-def callback_coord_each(coord):
-    global result
-    if result[0] > coord[0]:
-        result[0] = coord[0]
-    if result[1] > coord[1]:
-        result[1] = coord[1]
-    if result[2] < coord[0]:
-        result[2] = coord[0]
-    if result[3] < coord[1]:
-        result[3] = coord[1]
 
 
 # -------------------------------#
@@ -252,4 +256,19 @@ def envelope(geojson) -> Feature:
     >>> feature = envelope(feature_collection)
     """
     return bbox_polygon(bbox(geojson))
+
+
 # -------------------------------#
+
+# -------------------------------#
+
+# ----------- Length --------------#
+
+
+def length(geojson, unit: str = 'km'):
+    def callback_segment_reduce(previous_value, segment):
+        coords = segment['geometry']['coordinates']
+        print(str(coords[0]) + ' ' + str(coords[1]) + ' ' + unit)
+        return previous_value + distance(Point(coords[0]), Point(coords[1]), unit)
+
+    return segment_reduce(geojson, callback_segment_reduce, 0)
