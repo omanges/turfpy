@@ -3,7 +3,7 @@ This is Python library for performing geo spatial data analysis. This is an pyth
 
 ## Installation
 
-You can install the Turfpy from [PyPI](https://pypi.org/project/realpython-reader/):
+You can install the Turfpy from [PyPI](https://pypi.org/project/turfpy/):
    
     pip install turfpy
 
@@ -400,7 +400,7 @@ rhumb_destination(start, distance, bearing, {'units':'mi', 'properties': {"marke
 | ------- | ------ | ----------- |
 | `start`  | Point  | Start Point or Point Feature from which distance to be calculated |
 | `to`  | float | End Point or Point Feature upto which distance to be calculated |
-| `units`  | str(Optional) | Unit of distance, default is 'km' refer [Units type](#units-type) |
+| `units`  | str(Optional) | Unit of distance, default is 'km' refer [Units type](#Units-Type) |
 
 | Return  | Type | Description |
 | ------- | ------ | ----------- |
@@ -430,7 +430,7 @@ bbox = [-20, -20, -15, 0]
 square(bbox)
 ```
 
-#Units Type
+# Units Type
 Some functionalities support `units` as a parameter, default values of `units` is `kilometers` for the functionalities that have units are parameters. The values for it are:
 ```text
 'km' = kilometers
