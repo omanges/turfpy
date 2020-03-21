@@ -430,7 +430,7 @@ bbox = [-20, -20, -15, 0]
 square(bbox)
 ```
 
-# Units Type
+## Units Type
 Some functionalities support `units` as a parameter, default values of `units` is `kilometers` for the functionalities that have units are parameters. The values for it are:
 ```text
 'km' = kilometers
