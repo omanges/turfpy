@@ -2,8 +2,12 @@
 from codecs import open
 from os import path
 from setuptools import setup, find_packages
+import sys
 
 __version__ = "0.0.1"
+
+needs_pytest = {"pytest", "test", "ptr"}.intersection(sys.argv)
+pytest_runner = ["pytest-runner"] if needs_pytest else []
 
 here = path.abspath(path.dirname(__file__))
 
@@ -48,4 +52,7 @@ setup(
     author="Omkar Mestry",
     install_requires=install_requires,
     author_email="om.m.mestry@gmail.com",
+    setup_requires=[] + pytest_runner,
+    tests_require=["pytest"],
+    py_modules=["turfpy"]
 )
