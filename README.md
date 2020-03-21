@@ -35,7 +35,7 @@ measurement.bearing(start,end)
 | ------- | ------ | ----------- |
 | `point1`  | Point  | Start point |
 | `point2`  | Point | Ending point |
-| `units`  | str(Optional) | A string containing unit, default is 'km' refer [Units type](#units-type) |
+| `units`  | str(Optional) | A string containing unit, default is 'km' refer [Units type](#units-type) section |
 
 | Return  | Type | Description |
 | ------- | ------ | ----------- |
@@ -159,7 +159,7 @@ feature = envelope(feature_collection)
 | Argument  | Type | Description |
 | ------- | ------ | ----------- |
 | `geojson`  | Any Geojson Type  | Geojson for which the length is to be determined |
-| `units`  | str(Optional) | Properties to be added to the returned feature, default is 'km' refer [Units type](#units-type)  |
+| `units`  | str(Optional) | Properties to be added to the returned feature, default is 'km' refer [Units type](#units-type) section  |
 
 | Return  | Type | Description |
 | ------- | ------ | ----------- |
@@ -179,7 +179,7 @@ length(ls)
 | `origin`  | Point  | Start point |
 | `distance`  | float | distance upto which the destination is from origin |
 | `bearing`  | bearing  | Direction in which is the destination is from origin |
-| `options`  | dict(Optional) | Option like units of distance and properties to be passed to destination point feature, default is 'km' refer [Units type](#units-type), example {'units':'mi', 'properties': {"marker-color": "F00"} |
+| `options`  | dict(Optional) | Option like units of distance and properties to be passed to destination point feature, default is 'km' refer [Units type](#units-type) section, example {'units':'mi', 'properties': {"marker-color": "F00"} |
 
 | Return  | Type | Description |
 | ------- | ------ | ----------- |
@@ -219,7 +219,7 @@ centroid(polygon)
 | ------- | ------ | ----------- |
 | `line`  | Feature  | LineString on which the point to be identified |
 | `dist`  | dict(Optional) | Distance from the start of the LineString |
-| `properties`  | str(Optional) | Unit of distance, default is 'km' refer [Units type](#units-type) |
+| `unit`  | str(Optional) | Unit of distance, default is 'km' refer [Units type](#units-type) section |
 
 | Return  | Type | Description |
 | ------- | ------ | ----------- |
@@ -337,7 +337,7 @@ polygon_tangents(point, polygon)
 | ------- | ------ | ----------- |
 | `point`  | Point or Feature  | Point or Point Feature |
 | `line`  | LineString or Feature | (Multi)Polygon or (Multi)Polygon Feature |
-| `units`  | str(Optional) | Unit of distance, default is 'km' refer [Units type](#units-type) |
+| `units`  | str(Optional) | Unit of distance, default is 'km' refer [Units type](#units-type) section |
 | `method`  | str(Optional) | Method to calculate distance, value can be `geodesic` or `planar`, default value is geodesic |
 
 | Return  | Type | Description |
@@ -379,7 +379,7 @@ rhumb_bearing(start, end, True)
 | `origin`  | Point  | Start point |
 | `distance`  | float | Distance upto which the destination is from origin |
 | `bearing`  | bearing  | Varant bearing angle ranging from -180 to 180 degrees from north |
-| `options`  | dict(Optional) | Option like units of distance and properties to be passed to destination point feature, default is 'km' refer [Units type](#units-type), example {'units':'mi', 'properties': {"marker-color": "F00"} |
+| `options`  | dict(Optional) | Option like units of distance and properties to be passed to destination point feature, default is 'km' refer [Units type](#units-type) section, example {'units':'mi', 'properties': {"marker-color": "F00"} |
 
 | Return  | Type | Description |
 | ------- | ------ | ----------- |
@@ -400,7 +400,7 @@ rhumb_destination(start, distance, bearing, {'units':'mi', 'properties': {"marke
 | ------- | ------ | ----------- |
 | `start`  | Point  | Start Point or Point Feature from which distance to be calculated |
 | `to`  | float | End Point or Point Feature upto which distance to be calculated |
-| `units`  | str(Optional) | Unit of distance, default is 'km' refer [Units type](#Units-Type) |
+| `units`  | str(Optional) | Unit of distance, default is 'km' refer [Units type](#units-type) section |
 
 | Return  | Type | Description |
 | ------- | ------ | ----------- |
