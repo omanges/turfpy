@@ -336,3 +336,12 @@ def flatten_each(geojson, callback):
         return True
 
     geom_each(geojson, callback_geom_each)
+
+
+def feature_each(geojson, callback):
+    if geojson['type'] == 'Feature':
+        callback(geojson, 0)
+    elif geojson['type'] == 'FeatureCollection':
+        for i in range(0, len(geojson['features'])):
+            if not callback(geojson['features'][i], i):
+                break

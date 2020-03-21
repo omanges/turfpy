@@ -34,7 +34,7 @@ setup(
     project_urls={
         "Source": "https://github.com/omanges/turfpy"
     },
-    packages=find_packages(),
+    packages=find_packages(exclude=("tests",)),
     keywords="Python Library for Turf",
     include_package_data=True,
     author="Omkar Mestry",
