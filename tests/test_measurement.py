@@ -1,6 +1,9 @@
-from geojson import Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon, GeometryCollection, Feature, \
-    FeatureCollection
-from turfpy.measurement import bbox, bbox_polygon, center, envelope
+from geojson import (Feature, FeatureCollection, GeometryCollection,
+                     LineString, MultiLineString, MultiPoint, MultiPolygon,
+                     Point, Polygon)
+
+from turfpy.measurement import (bbox, bbox_polygon, center, envelope,
+                                rhumb_destination, rhumb_distance, square)
 
 
 def test_bbox_point():
@@ -31,7 +34,12 @@ def test_bbox_line_string():
 
 
 def test_bbox_multi_line_string():
-    mls = MultiLineString([[(3.75, 9.25), (-130.95, 1.52)], [(23.15, -34.25), (-1.35, -4.65), (3.45, 77.95)]])
+    mls = MultiLineString(
+        (
+            [(3.75, 9.25), (-130.95, 1.52)],
+            [(23.15, -34.25), (-1.35, -4.65), (3.45, 77.95)],
+        )
+    )
     bb = bbox(mls)
     assert bb[0] == -130.95
     assert bb[1] == -34.25
@@ -49,8 +57,12 @@ def test_bbox_polygon():
 
 
 def test_bbox_multi_polygon():
-    mp = MultiPolygon([([(3.78, 9.28), (-130.91, 1.52), (35.12, 72.234), (3.78, 9.28)],),
-                       ([(23.18, -34.29), (-1.31, -4.61), (3.41, 77.91), (23.18, -34.29)],)])
+    mp = MultiPolygon(
+        [
+            ([(3.78, 9.28), (-130.91, 1.52), (35.12, 72.234), (3.78, 9.28)],),
+            ([(23.18, -34.29), (-1.31, -4.61), (3.41, 77.91), (23.18, -34.29),],),
+        ]
+    )
     bb = bbox(mp)
     assert bb[0] == -130.91
     assert bb[1] == -34.29
@@ -93,8 +105,15 @@ def test_feature_collection():
 def test_bbox_polygon_feature():
     p = Polygon([[(2.38, 57.322), (23.194, -20.28), (-120.43, 19.15), (2.38, 57.322)]])
     bbox_poly = bbox_polygon(bbox(p))
-    assert bbox_poly['geometry']['coordinates'] == [
-        [[-120.43, -20.28], [23.194, -20.28], [23.194, 57.322], [-120.43, 57.322], [-120.43, -20.28]]]
+    assert bbox_poly["geometry"]["coordinates"] == [
+        [
+            [-120.43, -20.28],
+            [23.194, -20.28],
+            [23.194, 57.322],
+            [-120.43, 57.322],
+            [-120.43, -20.28],
+        ]
+    ]
 
 
 def test_center_feature():
@@ -103,7 +122,7 @@ def test_center_feature():
     f3 = Feature(geometry=Point((-97.508269, 35.463245)))
     feature_collection = FeatureCollection([f1, f2, f3])
     feature = center(feature_collection)
-    assert feature['geometry']['coordinates'] == [-97.512507, 35.466172]
+    assert feature["geometry"]["coordinates"] == [-97.512507, 35.466172]
 
 
 def test_envelope():
@@ -112,5 +131,36 @@ def test_envelope():
     f3 = Feature(geometry=Point((-75.534, 39.123)))
     feature_collection = FeatureCollection([f1, f2, f3])
     feature = envelope(feature_collection)
-    assert feature['geometry']['coordinates'] == [
-        [[-75.833, 39.123], [-75.343, 39.123], [-75.343, 39.984], [-75.833, 39.984], [-75.833, 39.123]]]
+    assert feature["geometry"]["coordinates"] == [
+        [
+            [-75.833, 39.123],
+            [-75.343, 39.123],
+            [-75.343, 39.984],
+            [-75.833, 39.984],
+            [-75.833, 39.123],
+        ]
+    ]
+
+
+def test_rhumb_destination():
+    start = Feature(geometry=Point((-75.343, 39.984)), properties={"marker-color": "F00"})
+    distance = 50
+    bearing = 90
+    dest = rhumb_destination(
+        start, distance, bearing, {"units": "mi", "properties": {"marker-color": "F00"}},
+    )
+    print(dest)
+    assert dest["geometry"]["coordinates"] == [-74.398553, 39.984]
+
+
+def test_rhumb_distnace():
+    start = Feature(geometry=Point((-75.343, 39.984)))
+    end = Feature(geometry=Point((-75.534, 39.123)))
+    dis = rhumb_distance(start, end, "mi")
+    assert dis == 60.35331128125677
+
+
+def test_square():
+    bbox = [-20, -20, -15, 0]
+    res = square(bbox)
+    assert res == [-27.5, -20, -7.5, 0]
