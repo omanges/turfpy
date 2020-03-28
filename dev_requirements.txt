@@ -4,7 +4,6 @@ mypy
 coverage
 black
 mypy
-proxy.py
 pytest
 pytest-cov
 pytest-mypy
