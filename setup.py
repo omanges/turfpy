@@ -1,8 +1,9 @@
 """Project setup file."""
+import sys
 from codecs import open
 from os import path
-from setuptools import setup, find_packages
-import sys
+
+from setuptools import find_packages, setup
 
 __version__ = "0.0.1"
 
@@ -49,9 +50,9 @@ setup(
     packages=find_packages(exclude=("tests",)),
     keywords="Python Library for Turf",
     include_package_data=True,
-    author="Omkar Mestry",
+    author="Omkar Mestry, Sachin Kharude",
     install_requires=install_requires,
-    author_email="om.m.mestry@gmail.com",
+    author_email="om.m.mestry@gmail.com, sachinkharude10@gmail.com",
     setup_requires=[] + pytest_runner,
     tests_require=["pytest"],
     py_modules=["turfpy"]

@@ -7,7 +7,8 @@
 #     elif type == 'Polygon':
 #         coords = []
 #
-#         def callback_coord_each(coord, coord_index, feature_index, multi_feature_index, geometry_index):
+#         def callback_coord_each(coord, coord_index, feature_index, multi_feature_index,
+#         geometry_index):
 #             nonlocal coords
 #             coords.append(coord)
 #
@@ -22,7 +23,8 @@
 #         neutralizedPoints = []
 #
 #         for point in coords:
-#             neutralizedPoints.append((point[0] - translation[0], point[1] - translation[1]))
+#             neutralizedPoints.append((point[0] - translation[0],
+#             point[1] - translation[1]))
 #
 #         for i in range(0, len(coords)):
 #             pi = neutralizedPoints[i]
@@ -46,7 +48,8 @@
 #             area = sArea * 0.5
 #             areaFactor = 1 / (6 * area)
 #
-#         point = Point(translation[0] + areaFactor * sx, translation[1] + areaFactor * sy)
+#         point = Point(translation[0] + areaFactor * sx,
+#         translation[1] + areaFactor * sy)
 #
 #         return  Feature(geometry=point, properties=properties if properties else {})
 #

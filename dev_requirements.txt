@@ -1,2 +1,12 @@
 #test
 pytest
+mypy
+coverage
+black
+mypy
+pytest
+pytest-cov
+pytest-mypy
+pytest-flake8
+isort
+
