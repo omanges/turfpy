@@ -157,7 +157,7 @@ def test_rhumb_distnace():
     start = Feature(geometry=Point((-75.343, 39.984)))
     end = Feature(geometry=Point((-75.534, 39.123)))
     dis = rhumb_distance(start, end, "mi")
-    assert dis == 60.35331128125677
+    assert round(dis, 4) == 60.3533
 
 
 def test_square():
