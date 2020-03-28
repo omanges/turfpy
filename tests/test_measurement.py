@@ -2,8 +2,9 @@ from geojson import (Feature, FeatureCollection, GeometryCollection,
                      LineString, MultiLineString, MultiPoint, MultiPolygon,
                      Point, Polygon)
 
-from turfpy.measurement import (bbox, bbox_polygon, center, envelope,
-                                rhumb_destination, rhumb_distance, square)
+from turfpy.measurement import (along, bbox, bbox_polygon, center, envelope,
+                                midpoint, nearest_point, rhumb_destination,
+                                rhumb_distance, square)
 
 
 def test_bbox_point():
@@ -164,3 +165,38 @@ def test_square():
     bbox = [-20, -20, -15, 0]
     res = square(bbox)
     assert res == [-27.5, -20, -7.5, 0]
+
+
+def test_along():
+    ls = LineString([(-83, 30), (-84, 36), (-78, 41)])
+    res = along(ls, 200, 'mi')
+    assert res["type"] == "Feature"
+    assert res["geometry"]["type"] == "Point"
+    c0, c1 = list(map(lambda x: round(x, 4), res["geometry"]["coordinates"]))
+    assert c0 == -83.4609
+    assert c1 == 32.8678
+
+
+def test_midpoint():
+    point1 = Point((144.834823, -37.771257))
+    point2 = Point((145.14244, -37.830937))
+    mp = midpoint(point1, point2)
+    assert mp["type"] == "Feature"
+    assert mp["geometry"]["type"] == "Point"
+    c0, c1 = list(map(lambda x: round(x, 4), mp["geometry"]["coordinates"]))
+    assert c0 == 144.9886
+    assert c1 == -37.8012
+
+
+def test_nearest_point():
+    f1 = Feature(geometry=Point((28.96991729736328, 41.01190001748873)))
+    f2 = Feature(geometry=Point((28.948459, 41.024204)))
+    f3 = Feature(geometry=Point((28.938674, 41.013324)))
+    fc = FeatureCollection([f1, f2, f3])
+    t = Feature(geometry=Point((28.973865, 41.011122)))
+    np = nearest_point(t, fc)
+    assert np["type"] == "Feature"
+    assert np["geometry"]["type"] == "Point"
+    c0, c1 = list(map(lambda x: round(x, 4), np["geometry"]["coordinates"]))
+    assert c0 == 28.9699
+    assert c1 == 41.0119

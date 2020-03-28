@@ -488,7 +488,9 @@ def nearest_point(target_point: Feature, points: FeatureCollection) -> Feature:
     :param points: FeatureCollection of points.
     :return: a Point Feature from the FeatureCollection which is closest to the reference
          Point.
-    Example:-
+
+    Example:
+
     >>> from turfpy.measurement import nearest_point
     >>> from geojson import Point, Feature, FeatureCollection
     >>> f1 = Feature(geometry=Point([28.96991729736328,41.01190001748873]))
