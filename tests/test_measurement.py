@@ -2,9 +2,11 @@ from geojson import (Feature, FeatureCollection, GeometryCollection,
                      LineString, MultiLineString, MultiPoint, MultiPolygon,
                      Point, Polygon)
 
-from turfpy.measurement import (along, bbox, bbox_polygon, center, envelope,
-                                midpoint, nearest_point, rhumb_destination,
-                                rhumb_distance, square)
+from turfpy.measurement import (along, bbox, bbox_polygon,
+                                boolean_point_in_polygon, center, destination,
+                                envelope, length, midpoint, nearest_point,
+                                point_to_line_distance, rhumb_bearing,
+                                rhumb_destination, rhumb_distance, square)
 
 
 def test_bbox_point():
@@ -150,7 +152,6 @@ def test_rhumb_destination():
     dest = rhumb_destination(
         start, distance, bearing, {"units": "mi", "properties": {"marker-color": "F00"}},
     )
-    print(dest)
     assert dest["geometry"]["coordinates"] == [-74.398553, 39.984]
 
 
@@ -169,7 +170,7 @@ def test_square():
 
 def test_along():
     ls = LineString([(-83, 30), (-84, 36), (-78, 41)])
-    res = along(ls, 200, 'mi')
+    res = along(ls, 200, "mi")
     assert res["type"] == "Feature"
     assert res["geometry"]["type"] == "Point"
     c0, c1 = list(map(lambda x: round(x, 4), res["geometry"]["coordinates"]))
@@ -200,3 +201,75 @@ def test_nearest_point():
     c0, c1 = list(map(lambda x: round(x, 4), np["geometry"]["coordinates"]))
     assert c0 == 28.9699
     assert c1 == 41.0119
+
+
+def test_length():
+    ls = LineString([(115, -32), (131, -22), (143, -25), (150, -34)])
+    lens = length(ls, units="mi")
+    assert round(lens, 4) == 2738.9664
+
+
+def test_destination():
+    origin = Point((-75.343, 39.984))
+    distance = 50
+    bearing = 90
+    options = {"units": "mi"}
+    des = destination(origin, distance, bearing, options)
+    assert des["type"] == "Feature"
+    assert des["geometry"]["type"] == "Point"
+    c0, c1 = list(map(lambda x: round(x, 4), des["geometry"]["coordinates"]))
+    assert c0 == -74.3986
+    assert c1 == 39.9802
+
+
+def test_boolean_point_in_polygon():
+    point = Feature(geometry=Point((-77, 44)))
+    polygon = Feature(
+        geometry=MultiPolygon(
+            [
+                ([(-81, 41), (-81, 47), (-72, 47), (-72, 41), (-81, 41)],),
+                ([(3.78, 9.28), (-130.91, 1.52), (35.12, 72.234), (3.78, 9.28)],),
+            ]
+        )
+    )
+    bpp = boolean_point_in_polygon(point, polygon)
+    assert bpp == True
+
+
+def test_point_to_line_distance():
+    point = Feature(geometry=Point((0, 0)))
+    linestring = Feature(geometry=LineString([(1, 1), (-1, 1)]))
+    pld = point_to_line_distance(point, linestring, units="mi")
+    assert round(pld, 4) == 69.0934
+
+
+def test_rhumb_bearing():
+    start = Feature(geometry=Point((-75.343, 39.984)))
+    end = Feature(geometry=Point((-75.534, 39.123)))
+    rhb = rhumb_bearing(start, end)
+    assert round(rhb, 4) == -170.2942
+
+
+# def test_polygon_tangents():
+#     point = Feature(geometry=Point([61, 5]))
+#     polygon = Feature(geometry=Polygon([[(11, 0), (22, 4), (31, 0), (31, 11),
+#                                              (21, 15), (11, 11), (11, 0)]]))
+#     pt = polygon_tangents(point, polygon)
+#     print(pt)
+
+# def test_point_on_feature():
+#     point = Polygon([[(116, -36), (131, -32), (146, -43), (155, -25), (133, -9),
+#     (111, -22), (116, -36)]])
+#     feature = Feature(geometry=point)
+#     pn = point_on_feature(feature)
+#     print(pn)
+
+# def test_centroid():
+#     polygon = Polygon([[(-81, 41), (-88, 36), (-84, 31), (-80, 33), (-77, 39),
+#     (-81, 41)]])
+#     cen = centroid(polygon)
+#     assert cen["type"] == "Feature"
+#     assert cen["geometry"]["type"] == "Point"
+#     c0, c1 = cen["geometry"]["coordinates"]
+#     # assert c0 == 82
+#     assert c1 == 36
