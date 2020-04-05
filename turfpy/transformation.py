@@ -1,7 +1,7 @@
 """
-This module impolements some of the spatial analysis techiques and processes used to
+This module implements some of the spatial analysis techniques and processes used to
 understand the patterns and relationships of geographic features.
-This is mainly inspired from turf.js.
+This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
 from geojson import Point, Polygon
