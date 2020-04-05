@@ -1,5 +1,9 @@
 # Turfpy
 [![Build Status](https://travis-ci.com/omanges/turfpy.svg?branch=master)](https://travis-ci.com/omanges/turfpy)
+![PyPI](https://img.shields.io/pypi/v/turfpy)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/turfpy)
+![PyPI - Status](https://img.shields.io/pypi/status/turfpy)
+![PyPI - License](https://img.shields.io/pypi/l/turfpy)
 
 This is Python library for performing geo spatial data analysis. This is an python alternative for turf.js.
 
