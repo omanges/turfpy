@@ -1,11 +1,9 @@
-from geojson import (Feature, FeatureCollection, GeometryCollection,
-                     LineString, MultiLineString, MultiPoint, MultiPolygon,
-                     Point, Polygon)
+from geojson import (Feature, FeatureCollection, GeometryCollection, LineString,
+                     MultiLineString, MultiPoint, MultiPolygon, Point, Polygon)
 
-from turfpy.measurement import (along, bbox, bbox_polygon,
-                                boolean_point_in_polygon, center, destination,
-                                envelope, length, midpoint, nearest_point,
-                                point_to_line_distance, rhumb_bearing,
+from turfpy.measurement import (along, bbox, bbox_polygon, boolean_point_in_polygon,
+                                center, destination, envelope, length, midpoint,
+                                nearest_point, point_to_line_distance, rhumb_bearing,
                                 rhumb_destination, rhumb_distance, square)
 
 
