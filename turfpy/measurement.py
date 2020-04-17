@@ -1,38 +1,44 @@
-""" #TODO: Add description
+"""
+This module implements some of the spatial analysis techniques and processes used to
+understand the patterns and relationships of geographic features.
+This is mainly inspired by turf.js.
+link: http://turfjs.org/
 """
 
-from math import (asin, atan2, cos, degrees, log, pi, pow, radians, sin, sqrt,
-                  tan)
-from typing import Union
+from math import asin, atan2, cos, degrees, log, pi, pow, radians, sin, sqrt, tan
+from typing import Optional, Union
 
-from geojson import (Feature, FeatureCollection, LineString, MultiLineString,
-                     MultiPoint, MultiPolygon, Point, Polygon)
+from geojson import (Feature, FeatureCollection, LineString, MultiLineString, MultiPoint,
+                     MultiPolygon, Point, Polygon)
 
-from turfpy.helper import (avg_earth_radius_km, convert_length, feature_of,
-                           get_coord, get_coords, get_geom, get_type,
-                           length_to_radians, radians_to_length)
+from turfpy.helper import (avg_earth_radius_km, convert_length, feature_of, get_coord,
+                           get_coords, get_geom, get_type, length_to_radians,
+                           radians_to_length)
 from turfpy.meta import (coord_each, feature_each, geom_reduce, segment_each,
                          segment_reduce)
 
 # ---------- Bearing -----------#
 
 
-def bearing(start: Point, end: Point, final=False):
+def bearing(start: Point, end: Point, final=False) -> float:
     """
     Takes two Point and finds the geographic bearing between them.
-    :param Point start: Start point.
-    :param Point end: Ending point.
-    :param boolean final: calculates the final bearing if true.
-    :return float: calculated bearing.
-    Example :-
-    >>> from turfpy import measurement
+
+    :param start: A object of :class:`Point` to represent start point.
+    :param end: A object of :class:`Point` to represent end point.
+    :param final: A boolean calculates the final bearing if True.
+    :return: A float calculated bearing.
+
+    Example:
+
     >>> from geojson import Point
+    >>> from turfpy import measurement
     >>> start = Point((-75.343, 39.984))
     >>> end = Point((-75.534, 39.123))
     >>> measurement.bearing(start,end)
     """
     if final:
-        return calculate_final_bearing(start, end)
+        return _calculate_final_bearing(start, end)
     start_coordinates = start["coordinates"]
     end_coordinates = end["coordinates"]
     lon1 = radians(float(start_coordinates[0]))
@@ -46,7 +52,7 @@ def bearing(start: Point, end: Point, final=False):
     return degrees(atan2(a, b))
 
 
-def calculate_final_bearing(start, end):
+def _calculate_final_bearing(start, end) -> float:
     """ #TODO: Add description
     """
     bear = bearing(end, start)
@@ -63,33 +69,35 @@ def distance(point1: Point, point2: Point, units: str = "km"):
     """
     Calculates distance between two Points. A point is containing latitude and
     logitude in decimal degrees and ``unit`` is optional.
+
     It calculates distance in units such as kilometers, meters, miles, feet and inches.
+
     :param point1: first point; tuple of (latitude, longitude) in decimal degrees.
     :param point2: second point; tuple of (latitude, longitude) in decimal degrees.
     :param units: A string containing unit, E.g. kilometers = 'km', miles = 'mi',
-    meters = 'm', feet = 'ft', inches = 'in'.
+        meters = 'm', feet = 'ft', inches = 'in'.
     :return: The distance between the two points in the requested unit, as a float.
-    Example :-
+
+    Example:
 
     >>> from turfpy import measurement
     >>> from geojson import Point
     >>> start = Point((-75.343, 39.984))
     >>> end = Point((-75.534, 39.123))
     >>> measurement.distance(start,end)
-
     """
     coordinates1 = get_coord(point1)
     coordinates2 = get_coord(point2)
 
-    dLat = radians((coordinates2[1] - coordinates1[1]))
+    dlat = radians((coordinates2[1] - coordinates1[1]))
 
-    dLon = radians((coordinates2[0] - coordinates1[0]))
+    dlon = radians((coordinates2[0] - coordinates1[0]))
 
     lat1 = radians(coordinates1[1])
 
     lat2 = radians(coordinates2[1])
 
-    a = pow(sin(dLat / 2), 2) + pow(sin(dLon / 2), 2) * cos(lat1) * cos(lat2)
+    a = pow(sin(dlat / 2), 2) + pow(sin(dlon / 2), 2) * cos(lat1) * cos(lat2)
     b = 2 * atan2(sqrt(a), sqrt(1 - a))
     return radians_to_length(b, units)
 
@@ -113,17 +121,16 @@ def area(
 ):
     """
     This function calculates the area of the Geojson object given as input.
+
     :param geojson: Geojson object for which area is to be found.
     :return: area for the given Geojson object.
-    Example :-
+
+    Example:
 
     >>> from turfpy.measurement import area
     >>> from geojson import Feature, FeatureCollection
-
-    >>> geometry_1 = {"coordinates": [[[0, 0], [0, 10], [10, 10], [10, 0], [0, 0]]],
-     "type": "Polygon"};
-    >>> geometry_2 = {"coordinates": [[[2.38, 57.322], [23.194, -20.28], [-120.43, 19.15],
-     [2.38, 57.322]]], "type": "Polygon"};
+    >>> geometry_1 = {"coordinates": [[[0, 0], [0, 10], [10, 10], [10, 0], [0, 0]]],"type": "Polygon"}  # noqa E501
+    >>> geometry_2 = {"coordinates": [[[2.38, 57.322], [23.194, -20.28], [-120.43, 19.15],[2.38, 57.322]]], "type": "Polygon"}  # noqa E501
     >>> feature_1 = Feature(geometry=geometry_1)
     >>> feature_2 = Feature(geometry=geometry_2)
     >>> feature_collection = FeatureCollection([feature_1, feature_2])
@@ -148,13 +155,12 @@ def bbox(geojson):
     >>> from turfpy.measurement import bbox
     >>> from geojson import Polygon
 
-    >>> p = Polygon([[(2.38, 57.322), (23.194, -20.28), (-120.43, 19.15),
-    (2.38, 57.322)]])
+    >>> p = Polygon([(2.38, 57.322), (23.194, -20.28), (-120.43, 19.15),(2.38, 57.322)])
     >>> bb = bbox(p)
     """
     result = [float("inf"), float("inf"), float("-inf"), float("-inf")]
 
-    def callback_coord_each(
+    def _callback_coord_each(
         coord, coord_index, feature_index, multi_feature_index, geometry_index
     ):
         nonlocal result
@@ -167,7 +173,7 @@ def bbox(geojson):
         if result[3] < coord[1]:
             result[3] = coord[1]
 
-    coord_each(geojson, callback_coord_each)
+    coord_each(geojson, _callback_coord_each)
     return result
 
 
@@ -186,8 +192,8 @@ def bbox_polygon(bbox: list, properties: dict = {}) -> Feature:
     >>> from turfpy.measurement import bbox_polygon, bbox
     >>> from geojson import Polygon
 
-    >>> p = Polygon([[(2.38, 57.322), (23.194, -20.28), (-120.43, 19.15),
-    (2.38, 57.322)]])
+    >>> p = Polygon([((2.38, 57.322), (23.194, -20.28), (-120.43, 19.15),
+    ... (2.38, 57.322))])
     >>> bb = bbox(p)
     >>> feature = bbox_polygon(bb)
     """
@@ -204,7 +210,7 @@ def bbox_polygon(bbox: list, properties: dict = {}) -> Feature:
     top_right = (east, north)
     low_right = (east, south)
 
-    bbox_polygon = Polygon([[low_left, low_right, top_right, top_left, low_left]])
+    bbox_polygon = Polygon([(low_left, low_right, top_right, top_left, low_left)])
     feature_bbox = Feature(geometry=bbox_polygon)
 
     if "properties" in properties:
@@ -226,7 +232,7 @@ def bbox_polygon(bbox: list, properties: dict = {}) -> Feature:
 # ----------- Center --------------#
 
 
-def center(geojson, properties: dict = {}) -> Feature:
+def center(geojson, properties: Optional[dict] = None) -> Feature:
     """
     Takes a Feature or FeatureCollection and returns the absolute center point of all
     features.
@@ -251,6 +257,8 @@ def center(geojson, properties: dict = {}) -> Feature:
 
     center_feature = Feature(geometry=point)
 
+    if properties is None:
+        properties = dict()
     if "properties" in properties:
         center_feature.properties = properties["properties"]
     elif "properties" not in properties:
@@ -307,11 +315,11 @@ def length(geojson, units: str = "km"):
     >>> length(ls)
     """
 
-    def callback_segment_reduce(previous_value, segment):
+    def _callback_segment_reduce(previous_value, segment):
         coords = segment["geometry"]["coordinates"]
         return previous_value + distance(Point(coords[0]), Point(coords[1]), units)
 
-    return segment_reduce(geojson, callback_segment_reduce, 0)
+    return segment_reduce(geojson, _callback_segment_reduce, 0)
 
 
 # -------------------------------#
@@ -382,15 +390,15 @@ def centroid(geojson, properties: dict = None) -> Feature:
     Example:-
     >>> from turfpy.measurement import centroid
     >>> from geojson import Polygon
-    >>> polygon = Polygon([[(-81, 41), (-88, 36), (-84, 31), (-80, 33), (-77, 39),
-    (-81, 41)]])
+    >>> polygon = Polygon([((-81, 41), (-88, 36), (-84, 31), (-80, 33), (-77, 39),
+    (-81, 41))])
     >>> centroid(polygon)
     """
     x_sum = 0
     y_sum = 0
     len = 0
 
-    def callback_coord_each(
+    def _callback_coord_each(
         coord, coord_index, feature_index, multi_feature_index, geometry_index
     ):
         nonlocal x_sum, y_sum, len
@@ -398,7 +406,7 @@ def centroid(geojson, properties: dict = None) -> Feature:
         y_sum += coord[1]
         len += 1
 
-    coord_each(geojson, callback_coord_each)
+    coord_each(geojson, _callback_coord_each)
     point = Point((x_sum / len, y_sum / len))
     return Feature(geometry=point, properties=properties if properties else {})
 
@@ -435,7 +443,7 @@ def along(line: Feature, dist, unit: str = "km") -> Feature:
         elif travelled >= dist:
             overshot = dist - travelled
             if not overshot:
-                return Point(coords[i])
+                return Feature(geometry=Point(coords[i]))
             else:
                 direction = bearing(Point(coords[i]), Point(coords[i - 1])) - 180
 
@@ -463,8 +471,8 @@ def midpoint(point1: Point, point2: Point) -> Feature:
     Example:-
     >>> from turfpy.measurement import midpoint
     >>> from geojson import Point
-    >>> point1 = Point([144.834823, -37.771257])
-    >>> point2 = Point([145.14244, -37.830937])
+    >>> point1 = Point((144.834823, -37.771257))
+    >>> point2 = Point((145.14244, -37.830937))
     >>> midpoint(point1, point2)
     """
     dist = distance(point1, point2)
@@ -493,11 +501,11 @@ def nearest_point(target_point: Feature, points: FeatureCollection) -> Feature:
 
     >>> from turfpy.measurement import nearest_point
     >>> from geojson import Point, Feature, FeatureCollection
-    >>> f1 = Feature(geometry=Point([28.96991729736328,41.01190001748873]))
-    >>> f2 = Feature(geometry=Point([28.948459, 41.024204]))
-    >>> f3 = Feature(geometry=Point([28.938674, 41.013324]))
+    >>> f1 = Feature(geometry=Point((28.96991729736328,41.01190001748873)))
+    >>> f2 = Feature(geometry=Point((28.948459, 41.024204)))
+    >>> f3 = Feature(geometry=Point((28.938674, 41.013324)))
     >>> fc = FeatureCollection([f1, f2 ,f3])
-    >>> t = Feature(geometry=Point([28.973865, 41.011122]))
+    >>> t = Feature(geometry=Point((28.973865, 41.011122)))
     >>> nearest_point(t ,fc)
     """
     if not target_point:
@@ -507,17 +515,16 @@ def nearest_point(target_point: Feature, points: FeatureCollection) -> Feature:
         raise Exception("points is required")
 
     min_dist = float("inf")
-    nearest = ""
     best_feature_index = 0
 
-    def callback_feature_each(pt, feature_index):
+    def _callback_feature_each(pt, feature_index):
         nonlocal min_dist, best_feature_index
         distance_to_point = distance(target_point["geometry"], pt["geometry"])
         if float(distance_to_point) < min_dist:
             best_feature_index = feature_index
             min_dist = distance_to_point
 
-    feature_each(points, callback_feature_each)
+    feature_each(points, _callback_feature_each)
 
     nearest = points["features"][best_feature_index]
     nearest["properties"]["featureIndex"] = best_feature_index
@@ -539,12 +546,12 @@ def point_on_feature(geojson) -> Feature:
     Example:-
     >>> from turfpy.measurement import point_on_feature
     >>> from geojson import  Polygon, Feature
-    >>> point = Polygon([[(116, -36), (131, -32), (146, -43), (155, -25), (133, -9),
-    (111, -22), (116, -36)]])
+    >>> point = Polygon([((116, -36), (131, -32), (146, -43), (155, -25), (133, -9),
+    (111, -22), (116, -36))])
     >>> feature = Feature(geometry=point)
     >>> point_on_feature(feature)
     """
-    fc = normalize(geojson)
+    fc = _normalize(geojson)
 
     cent = centroid(fc)
 
@@ -579,7 +586,7 @@ def point_on_feature(geojson) -> Feature:
                 y1 = geom["coordinates"][k][1]
                 x2 = geom["coordinates"][k + 1][0]
                 y2 = geom["coordinates"][k + 1][1]
-                if point_on_segment(x, y, x1, y1, x2, y2):
+                if _point_on_segment(x, y, x1, y1, x2, y2):
                     on_line = True
                     on_surface = True
                 k += 1
@@ -596,15 +603,15 @@ def point_on_feature(geojson) -> Feature:
                     y1 = line[k][1]
                     x2 = line[k + 1][0]
                     y2 = line[k + 1][1]
-                    if point_on_segment(x, y, x1, y1, x2, y2):
+                    if _point_on_segment(x, y, x1, y1, x2, y2):
                         on_line = True
                         on_surface = True
-                    k = k + 1
-                j = j + 1
+                    k += 1
+                j += 1
         elif geom["type"] == "Polygon" or geom["type"] == "MultiPolygon":
             if boolean_point_in_polygon(cent, geom):
                 on_surface = True
-        i = i + 1
+        i += 1
 
     if on_surface:
         return cent
@@ -617,7 +624,7 @@ def point_on_feature(geojson) -> Feature:
         return Feature(geometry=point)
 
 
-def normalize(geojson):
+def _normalize(geojson):
     if geojson["type"] != "FeatureCollection":
         if geojson["type"] != "Feature":
             return FeatureCollection([Feature(geometry=geojson)])
@@ -625,7 +632,7 @@ def normalize(geojson):
     return geojson
 
 
-def point_on_segment(x, y, x1, y1, x2, y2):
+def _point_on_segment(x, y, x1, y1, x2, y2):
     ab = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
     ap = sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1))
     pb = sqrt((x2 - x) * (x2 - x) + (y2 - y) * (y2 - y))
@@ -663,14 +670,14 @@ def boolean_point_in_polygon(point, polygon, ignore_boundary=False):
 
     pt = get_coord(point)
     geom = get_geom(polygon)
-    type = geom["type"]
+    geo_type = geom["type"]
     bbox = polygon.get("bbox", None)
     polys = geom["coordinates"]
 
     if bbox and not in_bbox(pt, bbox):
         return False
 
-    if type == "Polygon":
+    if geo_type == "Polygon":
         polys = [polys]
 
     inside_poly = False
@@ -692,7 +699,7 @@ def boolean_point_in_polygon(point, polygon, ignore_boundary=False):
 def in_ring(pt, ring, ignore_boundary):
     is_inside = False
     if ring[0][0] == ring[len(ring) - 1][0] and ring[0][1] == ring[len(ring) - 1][1]:
-        ring = ring[0: len(ring) - 1]
+        ring = ring[0 : len(ring) - 1]
     j = len(ring) - 1
     for i in range(0, len(ring)):
         xi = ring[i][0]
@@ -728,27 +735,27 @@ def explode(geojson):
     points = []
     if geojson["type"] == "FeatureCollection":
 
-        def callback_feature_each(feature, feature_index):
-            def callback_coord_each(
+        def _callback_feature_each(feature, feature_index):
+            def _callback_coord_each(
                 coord, coord_index, feature_index, multi_feature_index, geometry_index,
             ):
                 nonlocal points
                 point = Point(coord)
                 points.append(Feature(geometry=point, properties=feature["properties"]))
 
-            coord_each(feature, callback_coord_each)
+            coord_each(feature, _callback_coord_each)
 
-        feature_each(geojson, callback_feature_each)
+        feature_each(geojson, _callback_feature_each)
     else:
 
-        def callback_coord_each(
+        def _callback_coord_each(
             coord, coord_index, feature_index, multi_feature_index, geometry_index,
         ):
             nonlocal points, geojson
             point = Point(coord)
             points.append(Feature(geometry=point, properties=geojson["properties"]))
 
-        coord_each(geojson, callback_coord_each)
+        coord_each(geojson, _callback_coord_each)
     return FeatureCollection(points)
 
 
@@ -766,9 +773,9 @@ def polygon_tangents(point, polygon):
     Example:-
     >>> from turfpy.measurement import polygon_tangents
     >>> from geojson import Polygon, Point, Feature
-    >>> point = Feature(geometry=Point([61, 5]))
-    >>> polygon = Feature(geometry=Polygon([[(11, 0), (22, 4), (31, 0), (31, 11),
-                                             (21, 15), (11, 11), (11, 0)]]))
+    >>> point = Feature(geometry=Point((61, 5)))
+    >>> polygon = Feature(geometry=Polygon([(11, 0), (22, 4), (31, 0), (31, 11),
+    ...                                 (21, 15), (11, 11), (11, 0)]))
     >>> polygon_tangents(point, polygon)
     """
     point_coords = get_coords(point)
@@ -786,22 +793,22 @@ def polygon_tangents(point, polygon):
         nearest = nearest_point(point, explode(polygon))
         nearest_pt_index = nearest.properties.featureIndex
 
-    type = get_type(polygon)
+    geo_type = get_type(polygon)
 
-    if type == "Polygon":
+    if geo_type == "Polygon":
         rtan = poly_coords[0][nearest_pt_index]
         ltan = poly_coords[0][0]
         if nearest:
             if nearest["geometry"]["coordinates"][1] < point_coords[1]:
                 ltan = poly_coords[0][nearest_pt_index]
 
-        eprev = is_left(
+        eprev = _is_left(
             poly_coords[0][0], poly_coords[0][len(poly_coords[0]) - 1], point_coords,
         )
         out = process_polygon(poly_coords[0], point_coords, eprev, enext, rtan, ltan)
         rtan = out[0]
         ltan = out[1]
-    elif type == "MultiPolygon":
+    elif geo_type == "MultiPolygon":
         closest_feature = 0
         closest_vertex = 0
         vertices_counted = 0
@@ -813,12 +820,12 @@ def polygon_tangents(point, polygon):
                 if vertices_counted == nearest_pt_index:
                     vertice_found = True
                     break
-                vertices_counted = vertices_counted + 1
+                vertices_counted += 1
             if vertice_found:
                 break
         rtan = poly_coords[0][closest_feature][closest_vertex]
         ltan = poly_coords[0][closest_feature][closest_vertex]
-        eprev = is_left(
+        eprev = _is_left(
             poly_coords[0][0][0],
             poly_coords[0][0][len(poly_coords[0][0]) - 1],
             point_coords,
@@ -840,26 +847,26 @@ def process_polygon(polygon_coords, pt_coords, eprev, enext, rtan, ltan):
             next_coord_pair = polygon_coords[0]
         else:
             next_coord_pair = polygon_coords[i + 1]
-        enext = is_left(current_coords, next_coord_pair, pt_coords)
+        enext = _is_left(current_coords, next_coord_pair, pt_coords)
         if eprev <= 0 and enext > 0:
-            if not is_below(pt_coords, current_coords, rtan):
+            if not _is_below(pt_coords, current_coords, rtan):
                 rtan = current_coords
         elif eprev > 0 and enext <= 0:
-            if not is_above(pt_coords, current_coords, ltan):
+            if not _is_above(pt_coords, current_coords, ltan):
                 ltan = current_coords
         eprev = enext
     return [rtan, ltan]
 
 
-def is_above(point1, point2, point3):
-    return is_left(point1, point2, point3) > 0
+def _is_above(point1, point2, point3):
+    return _is_left(point1, point2, point3) > 0
 
 
-def is_below(point1, point2, point3):
-    return is_left(point1, point2, point3) < 0
+def _is_below(point1, point2, point3):
+    return _is_left(point1, point2, point3) < 0
 
 
-def is_left(point1, point2, point3):
+def _is_left(point1, point2, point3):
     return (point2[0] - point1[0]) * (point3[1] - point1[1]) - (point3[0] - point1[0]) * (
         point2[1] - point1[1]
     )
@@ -882,7 +889,7 @@ def point_to_line_distance(point: Feature, line: Feature, units="km", method="ge
     Example:-
     >>> from turfpy.measurement import point_to_line_distance
     >>> from geojson import LineString, Point, Feature
-    >>> point = Feature(geometry=Point([0, 0]))
+    >>> point = Feature(geometry=Point((0, 0)))
     >>> linestring = Feature(geometry=LineString([(1, 1),(-1, 1)]))
     >>> point_to_line_distance(point, linestring)
     """
@@ -915,7 +922,7 @@ def point_to_line_distance(point: Feature, line: Feature, units="km", method="ge
 
     p = point["geometry"]["coordinates"]
 
-    def callback_segment_each(
+    def _callback_segment_each(
         current_segment,
         feature_index,
         multi_feature_index,
@@ -929,7 +936,7 @@ def point_to_line_distance(point: Feature, line: Feature, units="km", method="ge
         if d < distance:
             distance = d
 
-    segment_each(line, callback_segment_each)
+    segment_each(line, _callback_segment_each)
 
     return convert_length(distance, "deg", options.get("units", ""))
 
@@ -938,26 +945,26 @@ def distance_to_segment(p, a, b, options):
     v = [b[0] - a[0], b[1] - a[1]]
     w = [p[0] - a[0], p[1] - a[1]]
 
-    c1 = dot(w, v)
+    c1 = _dot(w, v)
     if c1 <= 0:
-        return calc_distance(p, a, {"method": options.get("method", ""), "units": "deg"})
-    c2 = dot(v, v)
+        return _calc_distance(p, a, {"method": options.get("method", ""), "units": "deg"})
+    c2 = _dot(v, v)
     if c2 <= c1:
-        return calc_distance(p, b, {"method": options.get("method", ""), "units": "deg"})
+        return _calc_distance(p, b, {"method": options.get("method", ""), "units": "deg"})
     b2 = c1 / c2
     Pb = [a[0] + (b2 * v[0]), a[1] + (b2 * v[1])]
 
-    return calc_distance(p, Pb, {"method": options.get("method", ""), "units": "deg"})
+    return _calc_distance(p, Pb, {"method": options.get("method", ""), "units": "deg"})
 
 
-def calc_distance(a, b, options):
+def _calc_distance(a, b, options):
     if options.get("method", "") == "planar":
         return rhumb_distance(a, b, options.get("units", ""))
     else:
         return distance(a, b, options.get("units", ""))
 
 
-def dot(u, v):
+def _dot(u, v):
     return u[0] * v[0] + u[1] * v[1]
 
 
@@ -1038,7 +1045,7 @@ def rhumb_destination(origin, distance, bearing, options) -> Feature:
 
     >>> from turfpy.measurement import rhumb_destination
     >>> from geojson import Point, Feature
-    >>> start = Feature(geometry=Point([-75.343, 39.984]),
+    >>> start = Feature(geometry=Point((-75.343, 39.984)),
     properties={"marker-color": "F00"})
     >>> distance = 50
     >>> bearing = 90
@@ -1050,13 +1057,13 @@ def rhumb_destination(origin, distance, bearing, options) -> Feature:
     if was_negative_distance:
         distance_in_meters = -1 * (abs(distance_in_meters))
     coords = get_coord(origin)
-    destination_point = calculate_rhumb_destination(coords, distance_in_meters, bearing)
+    destination_point = _calculate_rhumb_destination(coords, distance_in_meters, bearing)
     return Feature(
         geometry=Point(destination_point), properties=options.get("properties", ""),
     )
 
 
-def calculate_rhumb_destination(origin, distance, bearing, radius=None):
+def _calculate_rhumb_destination(origin, distance, bearing, radius=None):
     if not radius:
         radius = avg_earth_radius_km
 
@@ -1105,30 +1112,29 @@ def rhumb_distance(start, to, units="km"):
     Example:-
     >>> from turfpy.measurement import rhumb_distance
     >>> from geojson import Point, Feature
-    >>> start = Feature(geometry=Point([-75.343, 39.984]))
-    >>> end = Feature(geometry=Point([-75.534, 39.123]))
+    >>> start = Feature(geometry=Point((-75.343, 39.984)))
+    >>> end = Feature(geometry=Point((-75.534, 39.123)))
     >>> rhumb_distance(start, end,'mi')
     """
     origin = get_coord(start)
-    destination = get_coord(to)
+    dest = get_coord(to)
 
-    if destination[0] - origin[0] > 180:
+    if dest[0] - origin[0] > 180:
         temp = -360
-    elif origin[0] - destination[0] > 180:
+    elif origin[0] - dest[0] > 180:
         temp = 360
     else:
         temp = 0
-    destination[0] += temp
+    dest[0] += temp
 
-    distance_in_meters = calculate_rhumb_distance(origin, destination)
+    distance_in_meters = _calculate_rhumb_distance(origin, dest)
     ru_distance = convert_length(distance_in_meters, "m", units)
     return ru_distance
 
 
-def calculate_rhumb_distance(origin, destination_point, radius=None):
+def _calculate_rhumb_distance(origin, destination_point, radius=None):
     if not radius:
         radius = avg_earth_radius_km
-    R = radius
     phi1 = origin[1] * pi / 180
     phi2 = destination_point[1] * pi / 180
     delta_phi = phi2 - phi1
@@ -1144,7 +1150,7 @@ def calculate_rhumb_distance(origin, destination_point, radius=None):
         q = cos(phi1)
 
     delta = sqrt(delta_phi * delta_phi + q * q * delta_lambda * delta_lambda)
-    dist = delta * R
+    dist = delta * radius
 
     return dist
 
@@ -1161,7 +1167,9 @@ def square(bbox: list):
 
     :param bbox: Bounding box extent in west, south, east, north order
     :return: A square surrounding bbox
-    Example:-
+
+    Example:
+
     >>> from turfpy.measurement import square
     >>> bbox = [-20, -20, -15, 0]
     >>> square(bbox)
@@ -1171,8 +1179,8 @@ def square(bbox: list):
     east = bbox[2]
     north = bbox[3]
 
-    horizontal_distance = distance(bbox[0:2], [east, south])
-    vertical_distance = distance(bbox[0:2], [west, north])
+    horizontal_distance = distance(bbox[0:2], Point((east, south)))
+    vertical_distance = distance(bbox[0:2], Point((west, north)))
     if horizontal_distance >= vertical_distance:
         vertical_midpoint = (south + north) / 2
         return [

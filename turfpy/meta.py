@@ -115,7 +115,7 @@ def geom_each(geojson, callback):
 
 
 def calculate_area(geom) -> float:
-    total = 0
+    total = 0.0
     if geom["type"] == "Polygon":
         return polygon_area(geom["coordinates"])
     elif geom["type"] == "MultiPolygon":
@@ -132,7 +132,7 @@ def calculate_area(geom) -> float:
     return 0
 
 
-def polygon_area(coords: list):
+def polygon_area(coords: list) -> float:
     total = 0
 
     if coords and len(coords) > 0:
@@ -144,7 +144,7 @@ def polygon_area(coords: list):
 
 
 def ring_area(coords: list):
-    total = 0
+    total = 0.0
     coords_length = len(coords)
 
     if coords_length > 2:
@@ -203,11 +203,11 @@ def coord_each(geojson, callback, excludeWrapCoord=None):
         else:
             is_geometry_collection = False
 
-        stopG = (
+        stopg = (
             len(geometry_maybe_collection["geometries"]) if is_geometry_collection else 1
         )
 
-        for geom_index in range(0, stopG):
+        for geom_index in range(0, stopg):
             multi_feature_index = 0
             geometry_index = 0
             geometry = (
@@ -221,7 +221,7 @@ def coord_each(geojson, callback, excludeWrapCoord=None):
             coords = geometry["coordinates"]
             geom_type = geometry["type"]
 
-            wrapShrink = (
+            wrap_shrink = (
                 1
                 if excludeWrapCoord
                 and (geom_type == "Polygon" or geom_type == "MultiPolygon")
@@ -259,7 +259,7 @@ def coord_each(geojson, callback, excludeWrapCoord=None):
                         multi_feature_index += multi_feature_index + 1
                 elif geom_type == "Polygon" or geom_type == "MultiLineString":
                     for j in range(0, len(coords)):
-                        for k in range(0, len(coords[j]) - wrapShrink):
+                        for k in range(0, len(coords[j]) - wrap_shrink):
                             # if not callback(coords[j][k]):
                             #     return False
                             callback(
@@ -280,7 +280,7 @@ def coord_each(geojson, callback, excludeWrapCoord=None):
                     for j in range(0, len(coords)):
                         geometry_index = 0
                         for k in range(0, len(coords[j])):
-                            for l in range(0, len(coords[j][k]) - wrapShrink):
+                            for l in range(0, len(coords[j][k]) - wrap_shrink):
                                 # if not callback(coords[j][k][l]):
                                 #     return False
                                 callback(
