@@ -436,6 +436,26 @@ bbox = [-20, -20, -15, 0]
 square(bbox)
 ```
 
+* Circle : Takes a Point and calculates the circle polygon given a radius in degrees, radians, miles, or kilometers; and steps for precision.
+
+| Argument| Type | Description|
+| -------   |------ | ----------- |
+| `Center`  |Point  | Center Point |
+| `radius`  |Int    | radius of the circle |
+| `steps`   |Int    | Number of steps |
+| `units`   |str(optional) | Unit of distance, default is 'km' refer [Units type](#units-type) section |
+| `kwargs`  |dict(optional) | optional properties |
+
+| Return  | Type | Description |
+| ------- | ------ | ----------- |
+| `Feature`  | Polygon  | A circle polygon |
+
+```python
+from turfpy import circle
+from geojson import Point
+circle(center=Point((-75.343, 39.984)), radius=5, steps=10)
+```
+
 ## Units Type
 Some functionalities support `units` as a parameter, default values of `units` is `kilometers` for the functionalities that have units are parameters. The values for it are:
 ```text
