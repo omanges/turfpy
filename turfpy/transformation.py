@@ -4,13 +4,13 @@ understand the patterns and relationships of geographic features.
 This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
-from geojson import Point, Polygon
+from geojson import Point, Polygon, Feature
 
 from turfpy.measurement import destination
 
 
 def circle(
-    center: Point, radius: int, steps: int = 64, units: str = "km", **kwargs
+    center: Feature, radius: int, steps: int = 64, units: str = "km", **kwargs
 ) -> Polygon:
     """
     Takes a Point and calculates the circle polygon given a radius in degrees,
@@ -27,7 +27,8 @@ def circle(
     Example:
 
     >>> from turfpy import circle
-    >>> circle(center=Point((-75.343, 39.984)), radius=5, steps=10)
+    >>> from geojson import Feature, Point
+    >>> circle(center=Feature(geometry=Point((-75.343, 39.984))), radius=5, steps=10)
 
     """
     coordinates = []

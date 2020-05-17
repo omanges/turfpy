@@ -20,7 +20,7 @@ from turfpy.meta import (coord_each, feature_each, geom_reduce, segment_each,
 # ---------- Bearing -----------#
 
 
-def bearing(start: Point, end: Point, final=False) -> float:
+def bearing(start: Feature, end: Feature, final=False) -> float:
     """
     Takes two Point and finds the geographic bearing between them.
 
@@ -31,16 +31,16 @@ def bearing(start: Point, end: Point, final=False) -> float:
 
     Example:
 
-    >>> from geojson import Point
+    >>> from geojson import Point, Feature
     >>> from turfpy import measurement
-    >>> start = Point((-75.343, 39.984))
-    >>> end = Point((-75.534, 39.123))
+    >>> start = Feature(geometry=Point((-75.343, 39.984)))
+    >>> end = Feature(geometry=Point((-75.534, 39.123)))
     >>> measurement.bearing(start,end)
     """
     if final:
         return _calculate_final_bearing(start, end)
-    start_coordinates = start["coordinates"]
-    end_coordinates = end["coordinates"]
+    start_coordinates = start["geometry"]["coordinates"]
+    end_coordinates = end["geometry"]["coordinates"]
     lon1 = radians(float(start_coordinates[0]))
     lon2 = radians(float(end_coordinates[0]))
     lat1 = radians(float(start_coordinates[1]))
@@ -65,7 +65,7 @@ def _calculate_final_bearing(start, end) -> float:
 # ---------- Distance -----------#
 
 
-def distance(point1: Point, point2: Point, units: str = "km"):
+def distance(point1: Feature, point2: Feature, units: str = "km"):
     """
     Calculates distance between two Points. A point is containing latitude and
     logitude in decimal degrees and ``unit`` is optional.
@@ -81,9 +81,9 @@ def distance(point1: Point, point2: Point, units: str = "km"):
     Example:
 
     >>> from turfpy import measurement
-    >>> from geojson import Point
-    >>> start = Point((-75.343, 39.984))
-    >>> end = Point((-75.534, 39.123))
+    >>> from geojson import Point, Feature
+    >>> start = Feature(geometry=Point((-75.343, 39.984)))
+    >>> end = Feature(geometry=Point((-75.534, 39.123)))
     >>> measurement.distance(start,end)
     """
     coordinates1 = get_coord(point1)
@@ -317,7 +317,7 @@ def length(geojson, units: str = "km"):
 
     def _callback_segment_reduce(previous_value, segment):
         coords = segment["geometry"]["coordinates"]
-        return previous_value + distance(Point(coords[0]), Point(coords[1]), units)
+        return previous_value + distance(Feature(geometry=Point(coords[0])), Feature(geometry=Point(coords[1])), units)
 
     return segment_reduce(geojson, _callback_segment_reduce, 0)
 
@@ -327,7 +327,7 @@ def length(geojson, units: str = "km"):
 # ----------- Destination --------------#
 
 
-def destination(origin: Point, distance, bearing, options: dict = {}) -> Feature:
+def destination(origin: Feature, distance, bearing, options: dict = {}) -> Feature:
     """
     Takes a Point and calculates the location of a destination point given a distance in
     degrees, radians, miles,
@@ -341,14 +341,14 @@ def destination(origin: Point, distance, bearing, options: dict = {}) -> Feature
     :return: Feature: destination point in at the given distance and given direction.
     Example :-
     >>> from turfpy.measurement import destination
-    >>> from geojson import Point
-    >>> origin = Point([-75.343, 39.984])
+    >>> from geojson import Point, Feature
+    >>> origin = Feature(geometry=Point([-75.343, 39.984]))
     >>> distance = 50
     >>> bearing = 90
     >>> options = {'units': 'mi'}
     >>> destination(origin,distance,bearing,options)
     """
-    coordinates1 = origin["coordinates"]
+    coordinates1 = origin["geometry"]["coordinates"]
     longitude1 = radians(float(coordinates1[0]))
     latitude1 = radians(float(coordinates1[1]))
     bearingRad = radians(float(bearing))
@@ -425,8 +425,8 @@ def along(line: Feature, dist, unit: str = "km") -> Feature:
     :return: Feature : Point at the distance on the LineString passed
     Example :-
     >>> from turfpy.measurement import along
-    >>> from geojson import LineString
-    >>> ls = LineString([(-83, 30), (-84, 36), (-78, 41)])
+    >>> from geojson import LineString, Feature
+    >>> ls = Feature(geometry=LineString([(-83, 30), (-84, 36), (-78, 41)]))
     >>> along(ls,200,'mi')
     """
     if line["type"] == "Feature":
@@ -445,13 +445,13 @@ def along(line: Feature, dist, unit: str = "km") -> Feature:
             if not overshot:
                 return Feature(geometry=Point(coords[i]))
             else:
-                direction = bearing(Point(coords[i]), Point(coords[i - 1])) - 180
+                direction = bearing(Feature(geometry=Point(coords[i])), Feature(geometry=Point(coords[i - 1]))) - 180
 
-                interpolated = destination(Point(coords[i]), overshot, direction, options)
+                interpolated = destination(Feature(geometry=Point(coords[i])), overshot, direction, options)
                 return interpolated
         else:
 
-            travelled += distance(Point(coords[i]), Point(coords[i + 1]), unit)
+            travelled += distance(Feature(geometry=Point(coords[i])), Feature(geometry=Point(coords[i + 1])), unit)
     point = Point(coords[len(coords) - 1])
 
     return Feature(geometry=point)
@@ -462,7 +462,7 @@ def along(line: Feature, dist, unit: str = "km") -> Feature:
 # ----------- Midpoint --------------#
 
 
-def midpoint(point1: Point, point2: Point) -> Feature:
+def midpoint(point1: Feature, point2: Feature) -> Feature:
     """
     This function is used to get midpoint between any the two points.
     :param point1: First point.
@@ -470,9 +470,9 @@ def midpoint(point1: Point, point2: Point) -> Feature:
     :return: Feature: Point which is the midpoint of the two points given as input.
     Example:-
     >>> from turfpy.measurement import midpoint
-    >>> from geojson import Point
-    >>> point1 = Point((144.834823, -37.771257))
-    >>> point2 = Point((145.14244, -37.830937))
+    >>> from geojson import Point, Feature
+    >>> point1 = Feature(geometry=Point((144.834823, -37.771257)))
+    >>> point2 = Feature(geometry=Point((145.14244, -37.830937)))
     >>> midpoint(point1, point2)
     """
     dist = distance(point1, point2)
@@ -519,7 +519,7 @@ def nearest_point(target_point: Feature, points: FeatureCollection) -> Feature:
 
     def _callback_feature_each(pt, feature_index):
         nonlocal min_dist, best_feature_index
-        distance_to_point = distance(target_point["geometry"], pt["geometry"])
+        distance_to_point = distance(target_point, pt)
         if float(distance_to_point) < min_dist:
             best_feature_index = feature_index
             min_dist = distance_to_point
@@ -961,7 +961,7 @@ def _calc_distance(a, b, options):
     if options.get("method", "") == "planar":
         return rhumb_distance(a, b, options.get("units", ""))
     else:
-        return distance(a, b, options.get("units", ""))
+        return distance(Feature(geometry=a), Feature(geometry=b), options.get("units", ""))
 
 
 def _dot(u, v):
@@ -1179,8 +1179,8 @@ def square(bbox: list):
     east = bbox[2]
     north = bbox[3]
 
-    horizontal_distance = distance(bbox[0:2], Point((east, south)))
-    vertical_distance = distance(bbox[0:2], Point((west, north)))
+    horizontal_distance = distance(Feature(geometry=bbox[0:2]), Feature(geometry=Point((east, south))))
+    vertical_distance = distance(Feature(geometry=bbox[0:2]), Feature(geometry=Point((west, north))))
     if horizontal_distance >= vertical_distance:
         vertical_midpoint = (south + north) / 2
         return [

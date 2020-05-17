@@ -19,8 +19,8 @@ It supports various functionalities, following section will show usage for each
   
 | Argument  | Type | Description |
 | ------- | ------ | ----------- |
-| `start`  | Point  | Start point |
-| `end`  | Point | Ending point |
+| `start`  | Feature  | Start point |
+| `end`  | Feature | Ending point |
 | `final`  | Boolean(Optional) | Calculates the final bearing if true |
 
 | Return  | Type | Description |
@@ -29,9 +29,9 @@ It supports various functionalities, following section will show usage for each
 
 ```python
 from turfpy import measurement
-from geojson import Point
-start = Point((-75.343, 39.984))
-end = Point((-75.534, 39.123))
+from geojson import Point, Feature
+start = Feature(geometry=Point((-75.343, 39.984)))
+end = Feature(geometry=Point((-75.534, 39.123)))
 measurement.bearing(start,end)
 ```
 
@@ -39,8 +39,8 @@ measurement.bearing(start,end)
 
 | Argument  | Type | Description |
 | ------- | ------ | ----------- |
-| `point1`  | Point  | Start point |
-| `point2`  | Point | Ending point |
+| `point1`  | Feature  | Start point |
+| `point2`  | Feature | Ending point |
 | `units`  | str(Optional) | A string containing unit, default is 'km' refer [Units type](#units-type) section |
 
 | Return  | Type | Description |
@@ -49,9 +49,9 @@ measurement.bearing(start,end)
 
 ```python
 from turfpy import measurement
-from geojson import Point
-start = Point((-75.343, 39.984))
-end = Point((-75.534, 39.123))
+from geojson import Point, Feature
+start = Feature(geometry=Point((-75.343, 39.984)))
+end = Feature(geometry=Point((-75.534, 39.123)))
 measurement.distance(start,end)
 ```
 
@@ -126,7 +126,7 @@ feature = bbox_polygon(bb)
 
 | Return  | Type | Description |
 | ------- | ------ | ----------- |
-| `center`  | Point  | Point feature for the center |
+| `center`  | Feature  | Point feature for the center |
 
 ```python
 from turfpy.measurement import center
@@ -182,7 +182,7 @@ length(ls)
 
 | Argument  | Type | Description |
 | ------- | ------ | ----------- |
-| `origin`  | Point  | Start point |
+| `origin`  | Feature  | Start point |
 | `distance`  | float | distance upto which the destination is from origin |
 | `bearing`  | bearing  | Direction in which is the destination is from origin |
 | `options`  | dict(Optional) | Option like units of distance and properties to be passed to destination point feature, default is 'km' refer [Units type](#units-type) section, example {'units':'mi', 'properties': {"marker-color": "F00"} |
@@ -193,8 +193,8 @@ length(ls)
 
 ```python
 from turfpy.measurement import destination
-from geojson import Point
-origin = Point([-75.343, 39.984])
+from geojson import Point, Feature
+origin = Feature(geometry=Point([-75.343, 39.984]))
 distance = 50
 bearing = 90
 options = {'units': 'mi'}
@@ -210,7 +210,7 @@ destination(origin,distance,bearing,options)
 
 | Return  | Type | Description |
 | ------- | ------ | ----------- |
-| `centroid`  | Point  | Point feature which is the centroid of the given features |
+| `centroid`  | Feature  | Point feature which is the centroid of the given features |
 
 ```python
 from turfpy.measurement import centroid
@@ -242,8 +242,8 @@ along(ls,200,'mi')
 
 | Argument  | Type | Description |
 | ------- | ------ | ----------- |
-| `point1`  | Point  | First point |
-| `point2`  | Point | Second Point |
+| `point1`  | Feature  | First point |
+| `point2`  | Feature | Second Point |
 
 | Return  | Type | Description |
 | ------- | ------ | ----------- |
@@ -251,9 +251,9 @@ along(ls,200,'mi')
 
 ```python
 from turfpy.measurement import midpoint
-from geojson import Point
-point1 = Point([144.834823, -37.771257])
-point2 = Point([145.14244, -37.830937])
+from geojson import Point, Feature
+point1 = Feature(geometry=Point([144.834823, -37.771257]))
+point2 = Feature(geometry=Point([145.14244, -37.830937]))
 midpoint(point1, point2)
 ```
 
@@ -301,7 +301,7 @@ point_on_feature(feature)
 
 | Argument  | Type | Description |
 | ------- | ------ | ----------- |
-| `point`  | Point  | Point or Point Feature |
+| `point`  | Feature  | Point or Point Feature |
 | `polygon`  | Polygon | Polygon or Polygon Feature |
 | `ignore_boundary`  | boolean(Optional) | Default value is False, specify whether to exclude boundary of the given polygon or not |
 
@@ -322,7 +322,7 @@ boolean_point_in_polygon(point, polygon)
 
 | Argument  | Type | Description |
 | ------- | ------ | ----------- |
-| `point`  | Point  | Point or Point Feature |
+| `point`  | Feature  | Point or Point Feature |
 | `polygon`  | Polygon | (Multi)Polygon or (Multi)Polygon Feature |
 
 | Return  | Type | Description |
@@ -382,7 +382,7 @@ rhumb_bearing(start, end, True)
 
 | Argument  | Type | Description |
 | ------- | ------ | ----------- |
-| `origin`  | Point  | Start point |
+| `origin`  | Point or Feature  | Start Point or Point Feature |
 | `distance`  | float | Distance upto which the destination is from origin |
 | `bearing`  | bearing  | Varant bearing angle ranging from -180 to 180 degrees from north |
 | `options`  | dict(Optional) | Option like units of distance and properties to be passed to destination point feature, default is 'km' refer [Units type](#units-type) section, example {'units':'mi', 'properties': {"marker-color": "F00"} |
@@ -404,7 +404,7 @@ rhumb_destination(start, distance, bearing, {'units':'mi', 'properties': {"marke
 
 | Argument  | Type | Description |
 | ------- | ------ | ----------- |
-| `start`  | Point  | Start Point or Point Feature from which distance to be calculated |
+| `start`  | Point or Feature  | Start Point or Point Feature from which distance to be calculated |
 | `to`  | float | End Point or Point Feature upto which distance to be calculated |
 | `units`  | str(Optional) | Unit of distance, default is 'km' refer [Units type](#units-type) section |
 

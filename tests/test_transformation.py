@@ -1,13 +1,13 @@
 """
 Test module for transformations.
 """
-from geojson import Point
+from geojson import Point, Feature
 
 from turfpy.transformation import circle
 
 
 def test_circle():
-    center = Point((-75.343, 39.984))
+    center = Feature(geometry=Point((-75.343, 39.984)))
     cc = circle(center, radius=5, steps=10)
     assert cc.type == "Polygon"
     assert len(cc.coordinates) == 11

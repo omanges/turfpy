@@ -208,7 +208,7 @@ def test_length():
 
 
 def test_destination():
-    origin = Point((-75.343, 39.984))
+    origin = Feature(geometry=Point((-75.343, 39.984)))
     distance = 50
     bearing = 90
     options = {"units": "mi"}
