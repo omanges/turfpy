@@ -177,8 +177,8 @@ def test_along():
 
 
 def test_midpoint():
-    point1 = Point((144.834823, -37.771257))
-    point2 = Point((145.14244, -37.830937))
+    point1 = Feature(geometry=Point((144.834823, -37.771257)))
+    point2 = Feature(geometry=Point((145.14244, -37.830937)))
     mp = midpoint(point1, point2)
     assert mp["type"] == "Feature"
     assert mp["geometry"]["type"] == "Point"

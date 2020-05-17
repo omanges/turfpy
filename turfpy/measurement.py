@@ -961,7 +961,7 @@ def _calc_distance(a, b, options):
     if options.get("method", "") == "planar":
         return rhumb_distance(a, b, options.get("units", ""))
     else:
-        return distance(Feature(geometry=a), Feature(geometry=b), options.get("units", ""))
+        return distance(Feature(geometry=Point(a)), Feature(geometry=Point(b)), options.get("units", ""))
 
 
 def _dot(u, v):
@@ -1179,8 +1179,8 @@ def square(bbox: list):
     east = bbox[2]
     north = bbox[3]
 
-    horizontal_distance = distance(Feature(geometry=bbox[0:2]), Feature(geometry=Point((east, south))))
-    vertical_distance = distance(Feature(geometry=bbox[0:2]), Feature(geometry=Point((west, north))))
+    horizontal_distance = distance(Feature(geometry=Point(bbox[0:2])), Feature(geometry=Point((east, south))))
+    vertical_distance = distance(Feature(geometry=Point(bbox[0:2])), Feature(geometry=Point((west, north))))
     if horizontal_distance >= vertical_distance:
         vertical_midpoint = (south + north) / 2
         return [
