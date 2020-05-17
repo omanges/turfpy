@@ -280,11 +280,11 @@ def coord_each(geojson, callback, excludeWrapCoord=None):
                     for j in range(0, len(coords)):
                         geometry_index = 0
                         for k in range(0, len(coords[j])):
-                            for l in range(0, len(coords[j][k]) - wrap_shrink):
+                            for le in range(0, len(coords[j][k]) - wrap_shrink):
                                 # if not callback(coords[j][k][l]):
                                 #     return False
                                 callback(
-                                    coords[j][k][l],
+                                    coords[j][k][le],
                                     coord_index,
                                     feature_index,
                                     multi_feature_index,

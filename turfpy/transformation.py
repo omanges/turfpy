@@ -4,7 +4,7 @@ understand the patterns and relationships of geographic features.
 This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
-from geojson import Point, Polygon, Feature
+from geojson import Feature, Polygon
 
 from turfpy.measurement import destination
 

@@ -8,14 +8,35 @@ link: http://turfjs.org/
 from math import asin, atan2, cos, degrees, log, pi, pow, radians, sin, sqrt, tan
 from typing import Optional, Union
 
-from geojson import (Feature, FeatureCollection, LineString, MultiLineString, MultiPoint,
-                     MultiPolygon, Point, Polygon)
+from geojson import (
+    Feature,
+    FeatureCollection,
+    LineString,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
+)
 
-from turfpy.helper import (avg_earth_radius_km, convert_length, feature_of, get_coord,
-                           get_coords, get_geom, get_type, length_to_radians,
-                           radians_to_length)
-from turfpy.meta import (coord_each, feature_each, geom_reduce, segment_each,
-                         segment_reduce)
+from turfpy.helper import (
+    avg_earth_radius_km,
+    convert_length,
+    feature_of,
+    get_coord,
+    get_coords,
+    get_geom,
+    get_type,
+    length_to_radians,
+    radians_to_length,
+)
+from turfpy.meta import (
+    coord_each,
+    feature_each,
+    geom_reduce,
+    segment_each,
+    segment_reduce,
+)
 
 # ---------- Bearing -----------#
 
@@ -317,7 +338,9 @@ def length(geojson, units: str = "km"):
 
     def _callback_segment_reduce(previous_value, segment):
         coords = segment["geometry"]["coordinates"]
-        return previous_value + distance(Feature(geometry=Point(coords[0])), Feature(geometry=Point(coords[1])), units)
+        return previous_value + distance(
+            Feature(geometry=Point(coords[0])), Feature(geometry=Point(coords[1])), units
+        )
 
     return segment_reduce(geojson, _callback_segment_reduce, 0)
 
@@ -445,13 +468,25 @@ def along(line: Feature, dist, unit: str = "km") -> Feature:
             if not overshot:
                 return Feature(geometry=Point(coords[i]))
             else:
-                direction = bearing(Feature(geometry=Point(coords[i])), Feature(geometry=Point(coords[i - 1]))) - 180
+                direction = (
+                    bearing(
+                        Feature(geometry=Point(coords[i])),
+                        Feature(geometry=Point(coords[i - 1])),
+                    )
+                    - 180
+                )
 
-                interpolated = destination(Feature(geometry=Point(coords[i])), overshot, direction, options)
+                interpolated = destination(
+                    Feature(geometry=Point(coords[i])), overshot, direction, options
+                )
                 return interpolated
         else:
 
-            travelled += distance(Feature(geometry=Point(coords[i])), Feature(geometry=Point(coords[i + 1])), unit)
+            travelled += distance(
+                Feature(geometry=Point(coords[i])),
+                Feature(geometry=Point(coords[i + 1])),
+                unit,
+            )
     point = Point(coords[len(coords) - 1])
 
     return Feature(geometry=point)
@@ -961,7 +996,11 @@ def _calc_distance(a, b, options):
     if options.get("method", "") == "planar":
         return rhumb_distance(a, b, options.get("units", ""))
     else:
-        return distance(Feature(geometry=Point(a)), Feature(geometry=Point(b)), options.get("units", ""))
+        return distance(
+            Feature(geometry=Point(a)),
+            Feature(geometry=Point(b)),
+            options.get("units", ""),
+        )
 
 
 def _dot(u, v):
@@ -1179,8 +1218,12 @@ def square(bbox: list):
     east = bbox[2]
     north = bbox[3]
 
-    horizontal_distance = distance(Feature(geometry=Point(bbox[0:2])), Feature(geometry=Point((east, south))))
-    vertical_distance = distance(Feature(geometry=Point(bbox[0:2])), Feature(geometry=Point((west, north))))
+    horizontal_distance = distance(
+        Feature(geometry=Point(bbox[0:2])), Feature(geometry=Point((east, south)))
+    )
+    vertical_distance = distance(
+        Feature(geometry=Point(bbox[0:2])), Feature(geometry=Point((west, north)))
+    )
     if horizontal_distance >= vertical_distance:
         vertical_midpoint = (south + north) / 2
         return [

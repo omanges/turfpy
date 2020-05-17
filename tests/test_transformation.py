@@ -1,7 +1,7 @@
 """
 Test module for transformations.
 """
-from geojson import Point, Feature
+from geojson import Feature, Point
 
 from turfpy.transformation import circle
 
