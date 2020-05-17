@@ -440,7 +440,7 @@ square(bbox)
 
 | Argument| Type | Description|
 | -------   |------ | ----------- |
-| `Center`  |Point  | Center Point |
+| `Center`  |Feature  | Center Point |
 | `radius`  |Int    | radius of the circle |
 | `steps`   |Int    | Number of steps |
 | `units`   |str(optional) | Unit of distance, default is 'km' refer [Units type](#units-type) section |
@@ -452,8 +452,8 @@ square(bbox)
 
 ```python
 from turfpy import circle
-from geojson import Point
-circle(center=Point((-75.343, 39.984)), radius=5, steps=10)
+from geojson import Point, Feature
+circle(center=Feature(geometry=Point((-75.343, 39.984))), radius=5, steps=10)
 ```
 
 ## Units Type
