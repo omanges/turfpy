@@ -6,11 +6,14 @@ link: http://turfjs.org/
 """
 from geojson import Feature, Polygon
 
-from turfpy.measurement import destination
+from turfpy.helper import get_geom
+from turfpy.measurement import destination, bbox_polygon
+
+from shapely.geometry import shape, mapping
 
 
 def circle(
-    center: Feature, radius: int, steps: int = 64, units: str = "km", **kwargs
+        center: Feature, radius: int, steps: int = 64, units: str = "km", **kwargs
 ) -> Polygon:
     """
     Takes a Point and calculates the circle polygon given a radius in degrees,
@@ -22,7 +25,7 @@ def circle(
     :param units: A string representing units of distance e.g. 'mi', 'km',
         'deg' and 'rad'.
     :param kwargs: A dict representing additional properties.
-    :return: A polygon object.
+    :return: A polygon feature object.
 
     Example:
 
@@ -40,4 +43,30 @@ def circle(
         cords = pt.geometry.coordinates
         coordinates.append(cords)
     coordinates.append(coordinates[0])
-    return Polygon(coordinates, **kwargs)
+    return Feature(geometry=Polygon([coordinates], **kwargs))
+
+
+def bbox_clip(geojson: Feature, bbox: list):
+    """
+    Takes a Feature or geometry and a bbox and clips the feature to the bbox
+    :param geojson: Geojson data
+    :param bbox: Bounding Box which is used to clip the geojson
+    :return: Clipped geojson
+    >>> from turfpy import circle
+    >>> from geojson import Feature, Point
+    >>> circle(center=Feature(geometry=Point((-75.343, 39.984))), radius=5, steps=10)
+    """
+    polygon = get_geom(geojson)
+    bb_polygon = bbox_polygon(bbox)
+
+    polygon = shape(polygon)
+    bb_polygon = shape(bb_polygon['geometry'])
+
+    intersection = bb_polygon.intersection(polygon)
+    intersection = mapping(intersection)
+
+    bb_clip = Feature(geometry=intersection)
+    if "properties" in geojson:
+        bb_clip.properties = geojson["properties"]
+
+    return bb_clip
