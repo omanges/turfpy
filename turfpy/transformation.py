@@ -99,6 +99,12 @@ def intersect(geojson_1: Feature, geojson_2: Feature):
     shape_1 = shape(geometry_1)
     shape_2 = shape(geometry_2)
 
+    if not shape_1.is_valid:
+        shape_1 = shape_1.buffer(0)
+
+    if not shape_2.is_valid:
+        shape_2 = shape_2.buffer(0)
+
     intersection = shape_1.intersection(shape_2)
     intersection = mapping(intersection)
 
