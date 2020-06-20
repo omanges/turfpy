@@ -13,7 +13,7 @@ from shapely.geometry import shape, mapping
 
 
 def circle(
-    center: Feature, radius: int, steps: int = 64, units: str = "km", **kwargs
+        center: Feature, radius: int, steps: int = 64, units: str = "km", **kwargs
 ) -> Polygon:
     """
     Takes a Point and calculates the circle polygon given a radius in degrees,
@@ -63,6 +63,9 @@ def bbox_clip(geojson: Feature, bbox: list):
 
     bb_clip = intersect(geojson, bb_polygon)
 
+    if not bb_clip:
+        return bb_clip
+
     if "properties" in geojson:
         bb_clip.properties = geojson["properties"]
 
@@ -98,6 +101,9 @@ def intersect(geojson_1: Feature, geojson_2: Feature):
 
     intersection = shape_1.intersection(shape_2)
     intersection = mapping(intersection)
+
+    if len(intersection['coordinates']) == 0:
+        return None
 
     intersection_feature = Feature(geometry=intersection)
 
