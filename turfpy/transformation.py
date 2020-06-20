@@ -29,7 +29,7 @@ def circle(
 
     Example:
 
-    >>> from turfpy import circle
+    >>> from turfpy.transformation import circle
     >>> from geojson import Feature, Point
     >>> circle(center=Feature(geometry=Point((-75.343, 39.984))), radius=5, steps=10)
 

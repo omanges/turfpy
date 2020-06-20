@@ -452,7 +452,7 @@ square(bbox)
 | `Feature`  | Polygon  | A circle polygon |
 
 ```python
-from turfpy import circle
+from turfpy.transformation import circle
 from geojson import Point, Feature
 circle(center=Feature(geometry=Point((-75.343, 39.984))), radius=5, steps=10)
 ```
