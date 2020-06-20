@@ -13,7 +13,7 @@ from shapely.geometry import shape, mapping
 
 
 def circle(
-        center: Feature, radius: int, steps: int = 64, units: str = "km", **kwargs
+    center: Feature, radius: int, steps: int = 64, units: str = "km", **kwargs
 ) -> Polygon:
     """
     Takes a Point and calculates the circle polygon given a radius in degrees,
@@ -52,21 +52,53 @@ def bbox_clip(geojson: Feature, bbox: list):
     :param geojson: Geojson data
     :param bbox: Bounding Box which is used to clip the geojson
     :return: Clipped geojson
-    >>> from turfpy import circle
-    >>> from geojson import Feature, Point
-    >>> circle(center=Feature(geometry=Point((-75.343, 39.984))), radius=5, steps=10)
+    >>> from turfpy.transformation import bbox_clip
+    >>> from geojson import Feature
+    >>> f = Feature(geometry={"coordinates": [[[2, 2], [8, 4],
+    >>> [12, 8], [3, 7], [2, 2]]], "type": "Polygon"})
+    >>> bbox = [0, 0, 10, 10]
+    >>> clip = bbox_clip(f, bbox)
     """
-    polygon = get_geom(geojson)
     bb_polygon = bbox_polygon(bbox)
 
-    polygon = shape(polygon)
-    bb_polygon = shape(bb_polygon['geometry'])
+    bb_clip = intersect(geojson, bb_polygon)
 
-    intersection = bb_polygon.intersection(polygon)
-    intersection = mapping(intersection)
-
-    bb_clip = Feature(geometry=intersection)
     if "properties" in geojson:
         bb_clip.properties = geojson["properties"]
 
     return bb_clip
+
+
+def intersect(geojson_1: Feature, geojson_2: Feature):
+    """
+    Takes two polygons and finds their intersection
+    :param geojson_1: Geojson data
+    :param geojson_2: Geojson data
+    :return: Intersection Geojson Feature
+    >>> from turfpy.transformation import intersect
+    >>> from geojson import Feature
+    >>> f = Feature(geometry={"coordinates": [
+    >>> [[-122.801742, 45.48565], [-122.801742, 45.60491],
+    >>> [-122.584762, 45.60491], [-122.584762, 45.48565],
+    >>> [-122.801742, 45.48565]]], "type": "Polygon"})
+    >>> b = Feature(geometry={"coordinates": [
+    >>> [[-122.520217, 45.535693], [-122.64038, 45.553967],
+    >>> [-122.720031, 45.526554], [-122.669906, 45.507309],
+    >>> [-122.723464, 45.446643], [-122.532577, 45.408574],
+    >>> [-122.487258, 45.477466], [-122.520217, 45.535693]
+    >>> ]], "type": "Polygon"})
+    >>> inter = intersect(f, b)
+    """
+
+    geometry_1 = get_geom(geojson_1)
+    geometry_2 = get_geom(geojson_2)
+
+    shape_1 = shape(geometry_1)
+    shape_2 = shape(geometry_2)
+
+    intersection = shape_1.intersection(shape_2)
+    intersection = mapping(intersection)
+
+    intersection_feature = Feature(geometry=intersection)
+
+    return intersection_feature

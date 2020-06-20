@@ -3,7 +3,7 @@ Test module for transformations.
 """
 from geojson import Feature, Point
 
-from turfpy.transformation import circle, bbox_clip
+from turfpy.transformation import circle, bbox_clip, intersect
 
 
 def test_circle():
@@ -30,14 +30,37 @@ def test_circle():
 def test_bbox_clip():
     f = Feature(geometry={"coordinates": [[[2, 2], [8, 4], [12, 8], [3, 7], [2, 2]]], "type": "Polygon"})
     bbox = [0, 0, 10, 10]
-    clip = bbox_clip(f, [0, 0, 10, 10])
+    clip = bbox_clip(f, bbox)
     clip = clip['geometry']
     assert clip.type == "Polygon"
     assert len(clip.coordinates[0]) == 6
-    assert clip.coordinates == [[[10.0, 7.777778],
-         [10.0, 6.0],
-         [8.0, 4.0],
-         [2.0, 2.0],
-         [3.0, 7.0],
-         [10.0, 7.777778]
-    ]]
+    assert clip.coordinates == [[[10.0, 6.0],
+                                 [8.0, 4.0],
+                                 [2.0, 2.0],
+                                 [3.0, 7.0],
+                                 [10.0, 7.777778],
+                                 [10.0, 6.0]]]
+
+
+def test_intersection():
+    f = Feature(geometry={"coordinates": [
+        [[-122.801742, 45.48565], [-122.801742, 45.60491],
+         [-122.584762, 45.60491], [-122.584762, 45.48565],
+         [-122.801742, 45.48565]]], "type": "Polygon"})
+    b = Feature(geometry={"coordinates": [
+        [[-122.520217, 45.535693], [-122.64038, 45.553967],
+         [-122.720031, 45.526554], [-122.669906, 45.507309],
+         [-122.723464, 45.446643], [-122.532577, 45.408574],
+         [-122.487258, 45.477466], [-122.520217, 45.535693]
+         ]], "type": "Polygon"})
+    inter = intersect(f, b)
+    inter = inter['geometry']
+    assert inter.type == "Polygon"
+    assert len(inter.coordinates[0]) == 7
+    assert inter.coordinates == [[[-122.584762, 45.545509],
+                                  [-122.584762, 45.48565],
+                                  [-122.689027, 45.48565],
+                                  [-122.669906, 45.507309],
+                                  [-122.720031, 45.526554],
+                                  [-122.64038, 45.553967],
+                                 [-122.584762, 45.545509]]]
