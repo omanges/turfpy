@@ -8,35 +8,14 @@ link: http://turfjs.org/
 from math import asin, atan2, cos, degrees, log, pi, pow, radians, sin, sqrt, tan
 from typing import Optional, Union
 
-from geojson import (
-    Feature,
-    FeatureCollection,
-    LineString,
-    MultiLineString,
-    MultiPoint,
-    MultiPolygon,
-    Point,
-    Polygon,
-)
+from geojson import (Feature, FeatureCollection, LineString, MultiLineString, MultiPoint,
+                     MultiPolygon, Point, Polygon)
 
-from turfpy.helper import (
-    avg_earth_radius_km,
-    convert_length,
-    feature_of,
-    get_coord,
-    get_coords,
-    get_geom,
-    get_type,
-    length_to_radians,
-    radians_to_length,
-)
-from turfpy.meta import (
-    coord_each,
-    feature_each,
-    geom_reduce,
-    segment_each,
-    segment_reduce,
-)
+from turfpy.helper import (avg_earth_radius_km, convert_length, feature_of, get_coord,
+                           get_coords, get_geom, get_type, length_to_radians,
+                           radians_to_length)
+from turfpy.meta import (coord_each, feature_each, geom_reduce, segment_each,
+                         segment_reduce)
 
 # ---------- Bearing -----------#
 

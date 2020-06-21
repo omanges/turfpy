@@ -32,8 +32,6 @@ class Spline:
         self.controls.append([self.points[0], self.points[0]])
 
         for i in range(0, len(self.centers) - 1):
-            p1 = self.centers[i]
-            p2 = self.centers[i + 1]
             dx = (
                 self.points[i + 1]["x"]
                 - (self.centers[i]["x"] + self.centers[i + 1]["x"]) / 2
