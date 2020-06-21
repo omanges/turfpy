@@ -4,19 +4,19 @@ understand the patterns and relationships of geographic features.
 This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
-from geojson import Feature, Polygon, LineString
 from math import floor
 
-from turfpy.helper import get_geom
-from turfpy.measurement import destination, bbox_polygon
+from geojson import Feature, LineString, Polygon
+from shapely.geometry import mapping, shape
 
-from shapely.geometry import shape, mapping
+from turfpy.helper import get_geom
+from turfpy.measurement import bbox_polygon, destination
 
 from .dev_lib.spline import Spline
 
 
 def circle(
-        center: Feature, radius: int, steps: int = 64, units: str = "km", **kwargs
+    center: Feature, radius: int, steps: int = 64, units: str = "km", **kwargs
 ) -> Polygon:
     """
     Takes a Point and calculates the circle polygon given a radius in degrees,
@@ -41,7 +41,7 @@ def circle(
     options = dict(steps=steps, units=units)
     options.update(kwargs)
     for i in range(steps):
-        bearing = i * -360 / radius
+        bearing = i * -360 / steps
         pt = destination(center, radius, bearing, options=options)
         cords = pt.geometry.coordinates
         coordinates.append(cords)
@@ -117,7 +117,7 @@ def intersect(geojson_1: Feature, geojson_2: Feature):
     intersection = shape_1.intersection(shape_2)
     intersection = mapping(intersection)
 
-    if len(intersection['coordinates']) == 0:
+    if len(intersection["coordinates"]) == 0:
         return None
 
     intersection_feature = Feature(geometry=intersection)
@@ -150,8 +150,8 @@ def bezie_spline(line: Feature, resolution=10000, sharpness=0.85):
     points = []
     geom = get_geom(line)
 
-    for c in geom['coordinates']:
-        points.append({'x': c[0], 'y': c[1]})
+    for c in geom["coordinates"]:
+        points.append({"x": c[0], "y": c[1]})
 
     spline = Spline(points_data=points, resolution=resolution, sharpness=sharpness)
 
@@ -159,7 +159,7 @@ def bezie_spline(line: Feature, resolution=10000, sharpness=0.85):
     while i < spline.duration:
         pos = spline.pos(i)
         if floor(i / 100) % 2 == 0:
-            coords.append((pos['x'], pos['y']))
+            coords.append((pos["x"], pos["y"]))
         i = i + 10
 
     return Feature(geometry=LineString(coords))
