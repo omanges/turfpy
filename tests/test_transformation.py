@@ -1,9 +1,9 @@
 """
 Test module for transformations.
 """
-from geojson import Feature, Point
+from geojson import Feature, Point, LineString
 
-from turfpy.transformation import circle, bbox_clip, intersect
+from turfpy.transformation import circle, bbox_clip, intersect, bezie_spline
 
 
 def test_circle():
@@ -64,3 +64,15 @@ def test_intersection():
                                   [-122.720031, 45.526554],
                                   [-122.64038, 45.553967],
                                  [-122.584762, 45.545509]]]
+
+
+def test_bezie_spline():
+    ls = LineString([(-76.091308, 18.427501), (-76.695556, 18.729501), (-76.552734, 19.40443), (-74.61914, 19.134789),
+                     (-73.652343, 20.07657), (-73.157958, 20.210656)])
+
+    f = Feature(geometry=ls)
+
+    bf = bezie_spline(f)
+    bf = bf['geometry']
+    assert bf.type == "LineString"
+    assert len(bf.coordinates) == 500

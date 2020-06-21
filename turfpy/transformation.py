@@ -4,12 +4,15 @@ understand the patterns and relationships of geographic features.
 This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
-from geojson import Feature, Polygon
+from geojson import Feature, Polygon, LineString
+from math import floor
 
 from turfpy.helper import get_geom
 from turfpy.measurement import destination, bbox_polygon
 
 from shapely.geometry import shape, mapping
+
+from .dev_lib.spline import Spline
 
 
 def circle(
@@ -52,6 +55,9 @@ def bbox_clip(geojson: Feature, bbox: list):
     :param geojson: Geojson data
     :param bbox: Bounding Box which is used to clip the geojson
     :return: Clipped geojson
+
+    Example:
+
     >>> from turfpy.transformation import bbox_clip
     >>> from geojson import Feature
     >>> f = Feature(geometry={"coordinates": [[[2, 2], [8, 4],
@@ -78,6 +84,9 @@ def intersect(geojson_1: Feature, geojson_2: Feature):
     :param geojson_1: Geojson data
     :param geojson_2: Geojson data
     :return: Intersection Geojson Feature
+
+    Example:
+
     >>> from turfpy.transformation import intersect
     >>> from geojson import Feature
     >>> f = Feature(geometry={"coordinates": [
@@ -114,3 +123,43 @@ def intersect(geojson_1: Feature, geojson_2: Feature):
     intersection_feature = Feature(geometry=intersection)
 
     return intersection_feature
+
+
+def bezie_spline(line: Feature, resolution=10000, sharpness=0.85):
+    """
+    Takes a line and returns a curved version by applying a Bezier spline algorithm
+    :param line: LineString which is used to draw the curve
+    :param resolution: time in milliseconds between points
+    :param sharpness: a measure of how curvy the path should be between splines
+    :return: Curve as LineString Feature
+
+    Example:
+
+    >>> from geojson import LineString, Feature
+    >>> from turfpy.transformation import bezie_spline
+    >>> ls = LineString([(-76.091308, 18.427501),
+    >>>                     (-76.695556, 18.729501),
+    >>>                     (-76.552734, 19.40443),
+    >>>                     (-74.61914, 19.134789),
+    >>>                     (-73.652343, 20.07657),
+    >>>                     (-73.157958, 20.210656)])
+    >>> f = Feature(geometry=ls)
+    >>> bezie_spline(f)
+    """
+    coords = []
+    points = []
+    geom = get_geom(line)
+
+    for c in geom['coordinates']:
+        points.append({'x': c[0], 'y': c[1]})
+
+    spline = Spline(points_data=points, resolution=resolution, sharpness=sharpness)
+
+    i = 0
+    while i < spline.duration:
+        pos = spline.pos(i)
+        if floor(i / 100) % 2 == 0:
+            coords.append((pos['x'], pos['y']))
+        i = i + 10
+
+    return Feature(geometry=LineString(coords))
