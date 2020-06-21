@@ -5,6 +5,7 @@
 ![PyPI - Status](https://img.shields.io/pypi/status/turfpy)
 ![PyPI - License](https://img.shields.io/pypi/l/turfpy)
 [![Downloads](https://pepy.tech/badge/turfpy/month)](https://pepy.tech/project/turfpy/month)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/omanges/turfpy.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/omanges/turfpy/alerts/)
 
 This is Python library for performing geo spatial data analysis. This is an python alternative for turf.js.
 
