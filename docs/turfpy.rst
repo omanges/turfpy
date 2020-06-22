@@ -23,8 +23,6 @@ Submodules
 
    turfpy.extra
    turfpy.helper
-   turfpy.lineclip
    turfpy.measurement
    turfpy.meta
-   turfpy.transform_bkp
    turfpy.transformation
