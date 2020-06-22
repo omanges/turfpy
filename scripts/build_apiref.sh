@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export DEST=docs/apiref
+export DEST=docs/
 rm -f $DEST/*.rst
 rm -rf $DEST/_build
 rm -rf $DEST/_static
