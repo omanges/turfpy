@@ -128,7 +128,7 @@ def intersect(geojson_1: Feature, geojson_2: Feature):
 def bezie_spline(line: Feature, resolution=10000, sharpness=0.85):
     """
     Takes a line and returns a curved version by applying a Bezier spline algorithm
-    :param line: LineString which is used to draw the curve
+    :param line: LineString Feature which is used to draw the curve
     :param resolution: time in milliseconds between points
     :param sharpness: a measure of how curvy the path should be between splines
     :return: Curve as LineString Feature
