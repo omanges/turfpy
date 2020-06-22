@@ -8,4 +8,6 @@ pytest-cov
 pytest-mypy
 pytest-flake8
 isort
-
+Sphinx>=2.4.0
+sphinx-rtd-theme
+sphinx_autodoc_typehints
