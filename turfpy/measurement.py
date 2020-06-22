@@ -332,16 +332,18 @@ def length(geojson, units: str = "km"):
 def destination(origin: Feature, distance, bearing, options: dict = {}) -> Feature:
     """
     Takes a Point and calculates the location of a destination point given a distance in
-    degrees, radians, miles,
-    or kilometers and bearing in degrees.
+    degrees, radians, miles, or kilometers and bearing in degrees.
+
     :param origin: Start point.
     :param distance: distance upto which the destination is from origin.
     :param bearing: Direction in which is the destination is from origin.
     :param options: Option like units of distance and properties to be passed to
         destination point feature, value
-    for units are 'mi', 'km', 'deg' and 'rad'.
+        for units are 'mi', 'km', 'deg' and 'rad'.
     :return: Feature: destination point in at the given distance and given direction.
-    Example :-
+
+    Example:
+
     >>> from turfpy.measurement import destination
     >>> from geojson import Point, Feature
     >>> origin = Feature(geometry=Point([-75.343, 39.984]))
@@ -504,8 +506,8 @@ def midpoint(point1: Feature, point2: Feature) -> Feature:
 def nearest_point(target_point: Feature, points: FeatureCollection) -> Feature:
     """
     Takes a reference Point Feature and FeatureCollection of point features and returns
-    the point from the
-    FeatureCollection closest to the reference Point Feature.
+    the point from the FeatureCollection closest to the reference Point Feature.
+
     :param target_point: Feature Point of reference.
     :param points: FeatureCollection of points.
     :return: a Point Feature from the FeatureCollection which is closest to the reference
@@ -662,13 +664,15 @@ def boolean_point_in_polygon(point, polygon, ignore_boundary=False):
     """
     Takes a Point or a Point Feature and Polygon or Polygon Feature as input and returns
     True if Point is in given Feature.
+
     :param point: Point or Point Feature.
     :param polygon: Polygon or Polygon Feature.
     :param ignore_boundary: [Optional] default value is False, specify whether to exclude
-        boundary of the given polygon
-    or not.
+        boundary of the given polygon or not.
     :return: True if the given Point is in Polygons else False
-    Example:-
+
+    Example:
+
     >>> from turfpy.measurement import boolean_point_in_polygon
     >>> from geojson import Point, MultiPolygon, Feature
     >>> point = Feature(geometry=Point((-77, 44)))
@@ -894,13 +898,16 @@ def _is_left(point1, point2, point3):
 def point_to_line_distance(point: Feature, line: Feature, units="km", method="geodesic"):
     """
     Returns the minimum distance between a Point and any segment of the LineString.
+
     :param point: Point Feature from which distance to be measured.
     :param line: Point LineString from which distance to be measured.
     :param units: units for distance 'km', 'm', 'mi, 'ft', 'in', 'deg', 'cen', 'rad',
         'naut', 'yd'
     :param method: Method which is used to calculate, values can be 'geodesic' or 'planar'
     :return: Approximate distance between the LineString and Point
-    Example:-
+
+    Example:
+
     >>> from turfpy.measurement import point_to_line_distance
     >>> from geojson import LineString, Point, Feature
     >>> point = Feature(geometry=Point((0, 0)))
@@ -1051,6 +1058,7 @@ def rhumb_destination(origin, distance, bearing, options) -> Feature:
     """
     Returns the destination Point having travelled the given distance along a Rhumb line
     from the origin Point with the (varant) given bearing.
+
     :param origin: Starting Point
     :param distance: Distance from the starting point
     :param bearing: Varant bearing angle ranging from -180 to 180 degrees from north
@@ -1127,7 +1135,8 @@ def rhumb_distance(start, to, units="km"):
     :param units: Units in which distance to be calculated, values can be 'deg', 'rad',
         'mi', 'km'
     :return: Distance calculated from provided start to end Point.
-    Example:-
+
+    Example:
     >>> from turfpy.measurement import rhumb_distance
     >>> from geojson import Point, Feature
     >>> start = Feature(geometry=Point((-75.343, 39.984)))
