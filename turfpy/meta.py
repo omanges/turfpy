@@ -30,7 +30,8 @@ def geom_reduce(geojson, initial_value_param):
 
 def geom_each(geojson, callback):
     """
-    Iterate over each geometry in any GeoJSON object, similar to Array.forEach()
+    Iterate over each geometry in any GeoJSON object, similar to Array.forEach().
+
     :param geojson: Point|Polygon|MultiPolygon|MultiPoint|LineString|MultiLineString|
         FeatureCollection|Feature geojson any GeoJSON object
     :param callback:

@@ -1,0 +1,636 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>turfpy.meta &mdash; turfpy  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> turfpy
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../turfpy.html">turfpy package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">turfpy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>turfpy.meta</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for turfpy.meta</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">sin</span>
+
+<span class="kn">from</span> <span class="nn">geojson</span> <span class="kn">import</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">LineString</span>
+
+<span class="n">RADIUS</span> <span class="o">=</span> <span class="mi">6378137</span>
+
+
+<div class="viewcode-block" id="geom_reduce"><a class="viewcode-back" href="../../turfpy.meta.html#turfpy.meta.geom_reduce">[docs]</a><span class="k">def</span> <span class="nf">geom_reduce</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">initial_value_param</span><span class="p">):</span>
+    <span class="n">initial_value</span> <span class="o">=</span> <span class="n">initial_value_param</span>
+    <span class="n">previous_value</span> <span class="o">=</span> <span class="n">initial_value_param</span>
+
+    <span class="k">def</span> <span class="nf">callback_geom_each</span><span class="p">(</span>
+        <span class="n">current_geometry</span><span class="p">,</span> <span class="n">feature_index</span><span class="p">,</span> <span class="n">feature_properties</span><span class="p">,</span> <span class="n">feature_bbox</span><span class="p">,</span> <span class="n">feature_id</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">initial_value</span>
+        <span class="k">nonlocal</span> <span class="n">previous_value</span>
+
+        <span class="k">def</span> <span class="nf">callback_geom_reduce</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">geom</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">value</span> <span class="o">+</span> <span class="n">calculate_area</span><span class="p">(</span><span class="n">geom</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">feature_index</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">initial_value</span><span class="p">:</span>
+            <span class="n">previous_value</span> <span class="o">=</span> <span class="n">current_geometry</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">previous_value</span> <span class="o">=</span> <span class="n">callback_geom_reduce</span><span class="p">(</span><span class="n">previous_value</span><span class="p">,</span> <span class="n">current_geometry</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">previous_value</span>
+
+    <span class="n">geom_each</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">callback_geom_each</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">previous_value</span></div>
+
+
+<div class="viewcode-block" id="geom_each"><a class="viewcode-back" href="../../turfpy.meta.html#turfpy.meta.geom_each">[docs]</a><span class="k">def</span> <span class="nf">geom_each</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Iterate over each geometry in any GeoJSON object, similar to Array.forEach().</span>
+
+<span class="sd">    :param geojson: Point|Polygon|MultiPolygon|MultiPoint|LineString|MultiLineString|</span>
+<span class="sd">        FeatureCollection|Feature geojson any GeoJSON object</span>
+<span class="sd">    :param callback:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">feature_index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">is_feature_collection</span> <span class="o">=</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;FeatureCollection&quot;</span>
+    <span class="n">is_feature</span> <span class="o">=</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Feature&quot;</span>
+    <span class="n">stop</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="n">is_feature_collection</span> <span class="k">else</span> <span class="mi">1</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">is_feature_collection</span><span class="p">:</span>
+            <span class="n">geometry_maybe_collection</span> <span class="o">=</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;geometry&quot;</span><span class="p">]</span>
+            <span class="n">feature_properties</span> <span class="o">=</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;properties&quot;</span><span class="p">)</span>
+            <span class="n">feature_b_box</span> <span class="o">=</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bbox&quot;</span><span class="p">)</span>
+            <span class="n">feature_id</span> <span class="o">=</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">is_feature</span><span class="p">:</span>
+            <span class="n">geometry_maybe_collection</span> <span class="o">=</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">]</span>
+            <span class="n">feature_properties</span> <span class="o">=</span> <span class="n">geojson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;properties&quot;</span><span class="p">)</span>
+            <span class="n">feature_b_box</span> <span class="o">=</span> <span class="n">geojson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bbox&quot;</span><span class="p">)</span>
+            <span class="n">feature_id</span> <span class="o">=</span> <span class="n">geojson</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">geometry_maybe_collection</span> <span class="o">=</span> <span class="n">geojson</span>
+            <span class="n">feature_properties</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">feature_b_box</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">feature_id</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">geometry_maybe_collection</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">geometry_maybe_collection</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;GeometryCollection&quot;</span><span class="p">:</span>
+                <span class="n">is_geometry_collection</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">is_geometry_collection</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">stop_g</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">geometry_maybe_collection</span><span class="p">[</span><span class="s2">&quot;geometries&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="n">is_geometry_collection</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop_g</span><span class="p">):</span>
+            <span class="n">geometry</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">geometry_maybe_collection</span><span class="p">[</span><span class="s2">&quot;geometries&quot;</span><span class="p">][</span><span class="n">g</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">is_geometry_collection</span>
+                <span class="k">else</span> <span class="n">geometry_maybe_collection</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">geometry</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">callback</span><span class="p">(</span>
+                    <span class="kc">None</span><span class="p">,</span> <span class="n">feature_index</span><span class="p">,</span> <span class="n">feature_properties</span><span class="p">,</span> <span class="n">feature_b_box</span><span class="p">,</span> <span class="n">feature_id</span><span class="p">,</span>
+                <span class="p">):</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Point&quot;</span>
+                <span class="ow">or</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;LineString&quot;</span>
+                <span class="ow">or</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;MultiPoint&quot;</span>
+                <span class="ow">or</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Polygon&quot;</span>
+                <span class="ow">or</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;MultiLineString&quot;</span>
+                <span class="ow">or</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;MultiPolygon&quot;</span>
+            <span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">callback</span><span class="p">(</span>
+                    <span class="n">geometry</span><span class="p">,</span>
+                    <span class="n">feature_index</span><span class="p">,</span>
+                    <span class="n">feature_properties</span><span class="p">,</span>
+                    <span class="n">feature_b_box</span><span class="p">,</span>
+                    <span class="n">feature_id</span><span class="p">,</span>
+                <span class="p">):</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;GeometryCollection&quot;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;geometries&quot;</span><span class="p">])):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">callback</span><span class="p">(</span>
+                        <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;geometries&quot;</span><span class="p">][</span><span class="n">j</span><span class="p">],</span>
+                        <span class="n">feature_index</span><span class="p">,</span>
+                        <span class="n">feature_properties</span><span class="p">,</span>
+                        <span class="n">feature_b_box</span><span class="p">,</span>
+                        <span class="n">feature_id</span><span class="p">,</span>
+                    <span class="p">):</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown Geometry Type&quot;</span><span class="p">)</span>
+        <span class="n">feature_index</span> <span class="o">+=</span> <span class="n">feature_index</span> <span class="o">+</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="calculate_area"><a class="viewcode-back" href="../../turfpy.meta.html#turfpy.meta.calculate_area">[docs]</a><span class="k">def</span> <span class="nf">calculate_area</span><span class="p">(</span><span class="n">geom</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Polygon&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">polygon_area</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;MultiPolygon&quot;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">coords</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]:</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">polygon_area</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">total</span>
+    <span class="k">elif</span> <span class="p">(</span>
+        <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Point&quot;</span>
+        <span class="ow">or</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;MultiPoint&quot;</span>
+        <span class="ow">or</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;LineString&quot;</span>
+        <span class="ow">or</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;MultiLineString&quot;</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="polygon_area"><a class="viewcode-back" href="../../turfpy.meta.html#turfpy.meta.polygon_area">[docs]</a><span class="k">def</span> <span class="nf">polygon_area</span><span class="p">(</span><span class="n">coords</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">coords</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">total</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ring_area</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)):</span>
+            <span class="n">total</span> <span class="o">-=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ring_area</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+    <span class="k">return</span> <span class="n">total</span></div>
+
+
+<div class="viewcode-block" id="ring_area"><a class="viewcode-back" href="../../turfpy.meta.html#turfpy.meta.ring_area">[docs]</a><span class="k">def</span> <span class="nf">ring_area</span><span class="p">(</span><span class="n">coords</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">coords_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">coords_length</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">coords_length</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">coords_length</span> <span class="o">-</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">lower_index</span> <span class="o">=</span> <span class="n">coords_length</span> <span class="o">-</span> <span class="mi">2</span>
+                <span class="n">middle_index</span> <span class="o">=</span> <span class="n">coords_length</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="n">upper_index</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="n">coords_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">lower_index</span> <span class="o">=</span> <span class="n">coords_length</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="n">middle_index</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">upper_index</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lower_index</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="n">middle_index</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">upper_index</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span>
+
+            <span class="n">p1</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">lower_index</span><span class="p">]</span>
+            <span class="n">p2</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">middle_index</span><span class="p">]</span>
+            <span class="n">p3</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">upper_index</span><span class="p">]</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="p">(</span><span class="n">rad</span><span class="p">(</span><span class="n">p3</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="n">rad</span><span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">rad</span><span class="p">(</span><span class="n">p2</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="n">total</span> <span class="o">=</span> <span class="n">total</span> <span class="o">*</span> <span class="n">RADIUS</span> <span class="o">*</span> <span class="n">RADIUS</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="n">total</span></div>
+
+
+<div class="viewcode-block" id="rad"><a class="viewcode-back" href="../../turfpy.meta.html#turfpy.meta.rad">[docs]</a><span class="k">def</span> <span class="nf">rad</span><span class="p">(</span><span class="n">num</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">num</span> <span class="o">*</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span></div>
+
+
+<div class="viewcode-block" id="coord_each"><a class="viewcode-back" href="../../turfpy.meta.html#turfpy.meta.coord_each">[docs]</a><span class="k">def</span> <span class="nf">coord_each</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">excludeWrapCoord</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Iterate over coordinates in any GeoJSON object, similar to Array.forEach()</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">geojson</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">coord_index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="nb">type</span> <span class="o">=</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+    <span class="n">is_feature_collection</span> <span class="o">=</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;FeatureCollection&quot;</span>
+    <span class="n">is_feature</span> <span class="o">=</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;Feature&quot;</span>
+    <span class="n">stop</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="n">is_feature_collection</span> <span class="k">else</span> <span class="mi">1</span>
+
+    <span class="k">for</span> <span class="n">feature_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">is_feature_collection</span><span class="p">:</span>
+            <span class="n">geometry_maybe_collection</span> <span class="o">=</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">][</span><span class="n">feature_index</span><span class="p">][</span><span class="s2">&quot;geometry&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">is_feature</span><span class="p">:</span>
+            <span class="n">geometry_maybe_collection</span> <span class="o">=</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">geometry_maybe_collection</span> <span class="o">=</span> <span class="n">geojson</span>
+
+        <span class="k">if</span> <span class="n">geometry_maybe_collection</span><span class="p">:</span>
+            <span class="n">is_geometry_collection</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">geometry_maybe_collection</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;GeometryCollection&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">is_geometry_collection</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">stopg</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">geometry_maybe_collection</span><span class="p">[</span><span class="s2">&quot;geometries&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="n">is_geometry_collection</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">geom_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">stopg</span><span class="p">):</span>
+            <span class="n">multi_feature_index</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">geometry_index</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">geometry</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">geometry_maybe_collection</span><span class="p">[</span><span class="s2">&quot;geometries&quot;</span><span class="p">][</span><span class="n">geom_index</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">is_geometry_collection</span>
+                <span class="k">else</span> <span class="n">geometry_maybe_collection</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">geometry</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+            <span class="n">geom_type</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+
+            <span class="n">wrap_shrink</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">excludeWrapCoord</span>
+                <span class="ow">and</span> <span class="p">(</span><span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;Polygon&quot;</span> <span class="ow">or</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;MultiPolygon&quot;</span><span class="p">)</span>
+                <span class="k">else</span> <span class="mi">0</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">geom_type</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;Point&quot;</span><span class="p">:</span>
+                    <span class="c1"># if not callback(coords):</span>
+                    <span class="c1">#     return False</span>
+                    <span class="n">callback</span><span class="p">(</span>
+                        <span class="n">coords</span><span class="p">,</span>
+                        <span class="n">coord_index</span><span class="p">,</span>
+                        <span class="n">feature_index</span><span class="p">,</span>
+                        <span class="n">multi_feature_index</span><span class="p">,</span>
+                        <span class="n">geometry_index</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">coord_index</span> <span class="o">+=</span> <span class="n">coord_index</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">multi_feature_index</span> <span class="o">+=</span> <span class="n">multi_feature_index</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;LineString&quot;</span> <span class="ow">or</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;MultiPoint&quot;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)):</span>
+                        <span class="c1"># if not callback(coords[j]):</span>
+                        <span class="c1">#     return False</span>
+                        <span class="n">callback</span><span class="p">(</span>
+                            <span class="n">coords</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>
+                            <span class="n">coord_index</span><span class="p">,</span>
+                            <span class="n">feature_index</span><span class="p">,</span>
+                            <span class="n">multi_feature_index</span><span class="p">,</span>
+                            <span class="n">geometry_index</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="n">coord_index</span> <span class="o">+=</span> <span class="n">coord_index</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;MultiPoint&quot;</span><span class="p">:</span>
+                            <span class="n">multi_feature_index</span> <span class="o">+=</span> <span class="n">multi_feature_index</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;LineString&quot;</span><span class="p">:</span>
+                        <span class="n">multi_feature_index</span> <span class="o">+=</span> <span class="n">multi_feature_index</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;Polygon&quot;</span> <span class="ow">or</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;MultiLineString&quot;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)):</span>
+                        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">-</span> <span class="n">wrap_shrink</span><span class="p">):</span>
+                            <span class="c1"># if not callback(coords[j][k]):</span>
+                            <span class="c1">#     return False</span>
+                            <span class="n">callback</span><span class="p">(</span>
+                                <span class="n">coords</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">],</span>
+                                <span class="n">coord_index</span><span class="p">,</span>
+                                <span class="n">feature_index</span><span class="p">,</span>
+                                <span class="n">multi_feature_index</span><span class="p">,</span>
+                                <span class="n">geometry_index</span><span class="p">,</span>
+                            <span class="p">)</span>
+                            <span class="n">coord_index</span> <span class="o">+=</span> <span class="n">coord_index</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;MultiLineString&quot;</span><span class="p">:</span>
+                            <span class="n">multi_feature_index</span> <span class="o">+=</span> <span class="n">multi_feature_index</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;Polygon&quot;</span><span class="p">:</span>
+                            <span class="n">geometry_index</span> <span class="o">+=</span> <span class="n">geometry_index</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;Polygon&quot;</span><span class="p">:</span>
+                        <span class="n">multi_feature_index</span> <span class="o">+=</span> <span class="n">multi_feature_index</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;MultiPolygon&quot;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)):</span>
+                        <span class="n">geometry_index</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">j</span><span class="p">])):</span>
+                            <span class="k">for</span> <span class="n">le</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">])</span> <span class="o">-</span> <span class="n">wrap_shrink</span><span class="p">):</span>
+                                <span class="c1"># if not callback(coords[j][k][l]):</span>
+                                <span class="c1">#     return False</span>
+                                <span class="n">callback</span><span class="p">(</span>
+                                    <span class="n">coords</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">le</span><span class="p">],</span>
+                                    <span class="n">coord_index</span><span class="p">,</span>
+                                    <span class="n">feature_index</span><span class="p">,</span>
+                                    <span class="n">multi_feature_index</span><span class="p">,</span>
+                                    <span class="n">geometry_index</span><span class="p">,</span>
+                                <span class="p">)</span>
+                                <span class="n">coord_index</span> <span class="o">+=</span> <span class="n">coord_index</span> <span class="o">+</span> <span class="mi">1</span>
+                            <span class="n">geometry_index</span> <span class="o">+=</span> <span class="n">geometry_index</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="n">multi_feature_index</span> <span class="o">+=</span> <span class="n">multi_feature_index</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s2">&quot;GeometryCollection&quot;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;geometries&quot;</span><span class="p">])):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">coord_each</span><span class="p">(</span>
+                            <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;geometries&quot;</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="n">callback</span><span class="p">,</span> <span class="n">excludeWrapCoord</span><span class="p">,</span>
+                        <span class="p">):</span>
+                            <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown Geometry Type&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="segment_reduce"><a class="viewcode-back" href="../../turfpy.meta.html#turfpy.meta.segment_reduce">[docs]</a><span class="k">def</span> <span class="nf">segment_reduce</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">previous_value</span> <span class="o">=</span> <span class="n">initial_value</span>
+    <span class="n">started</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">callback_segment_each</span><span class="p">(</span>
+        <span class="n">current_segment</span><span class="p">,</span>
+        <span class="n">feature_index</span><span class="p">,</span>
+        <span class="n">multi_feature_index</span><span class="p">,</span>
+        <span class="n">geometry_index</span><span class="p">,</span>
+        <span class="n">segment_index</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">started</span>
+        <span class="k">nonlocal</span> <span class="n">previous_value</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">started</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">initial_value</span> <span class="ow">and</span> <span class="n">initial_value</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">previous_value</span> <span class="o">=</span> <span class="n">current_segment</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">previous_value</span> <span class="o">=</span> <span class="n">callback</span><span class="p">(</span><span class="n">previous_value</span><span class="p">,</span> <span class="n">current_segment</span><span class="p">)</span>
+        <span class="n">started</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="n">segment_each</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">callback_segment_each</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">previous_value</span></div>
+
+
+<div class="viewcode-block" id="segment_each"><a class="viewcode-back" href="../../turfpy.meta.html#turfpy.meta.segment_each">[docs]</a><span class="k">def</span> <span class="nf">segment_each</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">callback_flatten_each</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">feature_index</span><span class="p">,</span> <span class="n">multi_feature_index</span><span class="p">):</span>
+        <span class="n">segment_index</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">]:</span>
+            <span class="k">return</span>
+
+        <span class="nb">type</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;Point&quot;</span> <span class="ow">or</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;MultiPoint&quot;</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">previous_coords</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">previous_feature_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">previous_multi_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">prev_geom_index</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">def</span> <span class="nf">callback_coord_each</span><span class="p">(</span>
+            <span class="n">current_coord</span><span class="p">,</span>
+            <span class="n">coord_index</span><span class="p">,</span>
+            <span class="n">feature_index_coord</span><span class="p">,</span>
+            <span class="n">multi_part_index_coord</span><span class="p">,</span>
+            <span class="n">geometry_index</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">nonlocal</span> <span class="n">previous_coords</span>
+            <span class="k">nonlocal</span> <span class="n">previous_feature_index</span>
+            <span class="k">nonlocal</span> <span class="n">previous_multi_index</span>
+            <span class="k">nonlocal</span> <span class="n">prev_geom_index</span>
+            <span class="k">nonlocal</span> <span class="n">segment_index</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="n">previous_coords</span>
+                <span class="ow">or</span> <span class="n">feature_index</span> <span class="o">&gt;</span> <span class="n">previous_feature_index</span>
+                <span class="ow">or</span> <span class="n">multi_part_index_coord</span> <span class="o">&gt;</span> <span class="n">previous_multi_index</span>
+                <span class="ow">or</span> <span class="n">geometry_index</span> <span class="o">&gt;</span> <span class="n">prev_geom_index</span>
+            <span class="p">):</span>
+                <span class="n">previous_coords</span> <span class="o">=</span> <span class="n">current_coord</span>
+                <span class="n">previous_feature_index</span> <span class="o">=</span> <span class="n">feature_index</span>
+                <span class="n">previous_multi_index</span> <span class="o">=</span> <span class="n">multi_part_index_coord</span>
+                <span class="n">prev_geom_index</span> <span class="o">=</span> <span class="n">geometry_index</span>
+                <span class="n">segment_index</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">return</span>
+            <span class="n">ls</span> <span class="o">=</span> <span class="n">LineString</span><span class="p">([</span><span class="n">previous_coords</span><span class="p">,</span> <span class="n">current_coord</span><span class="p">])</span>
+            <span class="n">current_segment</span> <span class="o">=</span> <span class="n">Feature</span><span class="p">(</span>
+                <span class="n">geometry</span><span class="o">=</span><span class="n">ls</span><span class="p">,</span>
+                <span class="n">properties</span><span class="o">=</span><span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="p">{},</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">callback</span><span class="p">(</span>
+                <span class="n">current_segment</span><span class="p">,</span>
+                <span class="n">feature_index</span><span class="p">,</span>
+                <span class="n">multi_feature_index</span><span class="p">,</span>
+                <span class="n">geometry_index</span><span class="p">,</span>
+                <span class="n">segment_index</span><span class="p">,</span>
+            <span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="n">segment_index</span> <span class="o">=</span> <span class="n">segment_index</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">previous_coords</span> <span class="o">=</span> <span class="n">current_coord</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">coord_each</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">callback_coord_each</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">flatten_each</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">callback_flatten_each</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="flatten_each"><a class="viewcode-back" href="../../turfpy.meta.html#turfpy.meta.flatten_each">[docs]</a><span class="k">def</span> <span class="nf">flatten_each</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">callback_geom_each</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">feature_index</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">geometry</span><span class="p">:</span>
+            <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">type</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span> <span class="ow">or</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;Point&quot;</span> <span class="ow">or</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;LineString&quot;</span> <span class="ow">or</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;Polygon&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">callback</span><span class="p">(</span>
+                <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">geometry</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">),</span> <span class="n">feature_index</span><span class="p">,</span> <span class="mi">0</span>
+            <span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="n">geom_type</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;MultiPoint&quot;</span><span class="p">:</span>
+            <span class="n">geom_type</span> <span class="o">=</span> <span class="s2">&quot;Point&quot;</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;MultiLineString&quot;</span><span class="p">:</span>
+            <span class="n">geom_type</span> <span class="o">=</span> <span class="s2">&quot;LineString&quot;</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;MultiPolygon&quot;</span><span class="p">:</span>
+            <span class="n">geom_type</span> <span class="o">=</span> <span class="s2">&quot;Polygon&quot;</span>
+
+        <span class="k">for</span> <span class="n">multi_feature_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">])):</span>
+            <span class="n">coordinate</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="n">multi_feature_index</span><span class="p">]</span>
+            <span class="n">geom</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">geom_type</span><span class="p">,</span> <span class="s2">&quot;coordinates&quot;</span><span class="p">:</span> <span class="n">coordinate</span><span class="p">}</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">callback</span><span class="p">(</span>
+                <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">geom</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">properties</span><span class="p">),</span>
+                <span class="n">feature_index</span><span class="p">,</span>
+                <span class="n">multi_feature_index</span><span class="p">,</span>
+            <span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="n">geom_each</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">callback_geom_each</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="feature_each"><a class="viewcode-back" href="../../turfpy.meta.html#turfpy.meta.feature_each">[docs]</a><span class="k">def</span> <span class="nf">feature_each</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Feature&quot;</span><span class="p">:</span>
+        <span class="n">callback</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;FeatureCollection&quot;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">])):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">callback</span><span class="p">(</span><span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">):</span>
+                <span class="k">break</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Author
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

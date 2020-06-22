@@ -1,0 +1,1432 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>turfpy.measurement &mdash; turfpy  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> turfpy
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../turfpy.html">turfpy package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">turfpy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>turfpy.measurement</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for turfpy.measurement</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module implements some of the spatial analysis techniques and processes used to</span>
+<span class="sd">understand the patterns and relationships of geographic features.</span>
+<span class="sd">This is mainly inspired by turf.js.</span>
+<span class="sd">link: http://turfjs.org/</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">asin</span><span class="p">,</span> <span class="n">atan2</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">degrees</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="nb">pow</span><span class="p">,</span> <span class="n">radians</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">tan</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">geojson</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Feature</span><span class="p">,</span> <span class="n">FeatureCollection</span><span class="p">,</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">MultiLineString</span><span class="p">,</span> <span class="n">MultiPoint</span><span class="p">,</span>
+                     <span class="n">MultiPolygon</span><span class="p">,</span> <span class="n">Point</span><span class="p">,</span> <span class="n">Polygon</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">turfpy.helper</span> <span class="kn">import</span> <span class="p">(</span><span class="n">avg_earth_radius_km</span><span class="p">,</span> <span class="n">convert_length</span><span class="p">,</span> <span class="n">feature_of</span><span class="p">,</span> <span class="n">get_coord</span><span class="p">,</span>
+                           <span class="n">get_coords</span><span class="p">,</span> <span class="n">get_geom</span><span class="p">,</span> <span class="n">get_type</span><span class="p">,</span> <span class="n">length_to_radians</span><span class="p">,</span>
+                           <span class="n">radians_to_length</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">turfpy.meta</span> <span class="kn">import</span> <span class="p">(</span><span class="n">coord_each</span><span class="p">,</span> <span class="n">feature_each</span><span class="p">,</span> <span class="n">geom_reduce</span><span class="p">,</span> <span class="n">segment_each</span><span class="p">,</span>
+                         <span class="n">segment_reduce</span><span class="p">)</span>
+
+<span class="c1"># ---------- Bearing -----------#</span>
+
+
+<div class="viewcode-block" id="bearing"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.bearing">[docs]</a><span class="k">def</span> <span class="nf">bearing</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes two Point and finds the geographic bearing between them.</span>
+
+<span class="sd">    :param start: A object of :class:`Point` to represent start point.</span>
+<span class="sd">    :param end: A object of :class:`Point` to represent end point.</span>
+<span class="sd">    :param final: A boolean calculates the final bearing if True.</span>
+<span class="sd">    :return: A float calculated bearing.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from geojson import Point, Feature</span>
+<span class="sd">    &gt;&gt;&gt; from turfpy import measurement</span>
+<span class="sd">    &gt;&gt;&gt; start = Feature(geometry=Point((-75.343, 39.984)))</span>
+<span class="sd">    &gt;&gt;&gt; end = Feature(geometry=Point((-75.534, 39.123)))</span>
+<span class="sd">    &gt;&gt;&gt; measurement.bearing(start,end)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">final</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_calculate_final_bearing</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+    <span class="n">start_coordinates</span> <span class="o">=</span> <span class="n">start</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+    <span class="n">end_coordinates</span> <span class="o">=</span> <span class="n">end</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+    <span class="n">lon1</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">start_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">lon2</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">end_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">lat1</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">start_coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">lat2</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">end_coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">sin</span><span class="p">(</span><span class="n">lon2</span> <span class="o">-</span> <span class="n">lon1</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">lat2</span><span class="p">)</span>
+
+    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">cos</span><span class="p">(</span><span class="n">lat1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">lat2</span><span class="p">))</span> <span class="o">-</span> <span class="p">(</span><span class="n">sin</span><span class="p">(</span><span class="n">lat1</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">lat2</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">lon2</span> <span class="o">-</span> <span class="n">lon1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">degrees</span><span class="p">(</span><span class="n">atan2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="_calculate_final_bearing"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement._calculate_final_bearing">[docs]</a><span class="k">def</span> <span class="nf">_calculate_final_bearing</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; #TODO: Add description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bear</span> <span class="o">=</span> <span class="n">bearing</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+    <span class="n">bear</span> <span class="o">=</span> <span class="p">(</span><span class="n">bear</span> <span class="o">+</span> <span class="mi">180</span><span class="p">)</span> <span class="o">%</span> <span class="mi">360</span>
+    <span class="k">return</span> <span class="n">bear</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ---------- Distance -----------#</span>
+
+
+<div class="viewcode-block" id="distance"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.distance">[docs]</a><span class="k">def</span> <span class="nf">distance</span><span class="p">(</span><span class="n">point1</span><span class="p">:</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">point2</span><span class="p">:</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;km&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates distance between two Points. A point is containing latitude and</span>
+<span class="sd">    logitude in decimal degrees and ``unit`` is optional.</span>
+
+<span class="sd">    It calculates distance in units such as kilometers, meters, miles, feet and inches.</span>
+
+<span class="sd">    :param point1: first point; tuple of (latitude, longitude) in decimal degrees.</span>
+<span class="sd">    :param point2: second point; tuple of (latitude, longitude) in decimal degrees.</span>
+<span class="sd">    :param units: A string containing unit, E.g. kilometers = &#39;km&#39;, miles = &#39;mi&#39;,</span>
+<span class="sd">        meters = &#39;m&#39;, feet = &#39;ft&#39;, inches = &#39;in&#39;.</span>
+<span class="sd">    :return: The distance between the two points in the requested unit, as a float.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from turfpy import measurement</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Point, Feature</span>
+<span class="sd">    &gt;&gt;&gt; start = Feature(geometry=Point((-75.343, 39.984)))</span>
+<span class="sd">    &gt;&gt;&gt; end = Feature(geometry=Point((-75.534, 39.123)))</span>
+<span class="sd">    &gt;&gt;&gt; measurement.distance(start,end)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">coordinates1</span> <span class="o">=</span> <span class="n">get_coord</span><span class="p">(</span><span class="n">point1</span><span class="p">)</span>
+    <span class="n">coordinates2</span> <span class="o">=</span> <span class="n">get_coord</span><span class="p">(</span><span class="n">point2</span><span class="p">)</span>
+
+    <span class="n">dlat</span> <span class="o">=</span> <span class="n">radians</span><span class="p">((</span><span class="n">coordinates2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">coordinates1</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+    <span class="n">dlon</span> <span class="o">=</span> <span class="n">radians</span><span class="p">((</span><span class="n">coordinates2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">coordinates1</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+    <span class="n">lat1</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="n">coordinates1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">lat2</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="n">coordinates2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">(</span><span class="n">sin</span><span class="p">(</span><span class="n">dlat</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nb">pow</span><span class="p">(</span><span class="n">sin</span><span class="p">(</span><span class="n">dlon</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">lat1</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">lat2</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">atan2</span><span class="p">(</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">a</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">radians_to_length</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ----------- Area --------------#</span>
+
+
+<div class="viewcode-block" id="area"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.area">[docs]</a><span class="k">def</span> <span class="nf">area</span><span class="p">(</span>
+    <span class="n">geojson</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+        <span class="n">Point</span><span class="p">,</span>
+        <span class="n">LineString</span><span class="p">,</span>
+        <span class="n">Polygon</span><span class="p">,</span>
+        <span class="n">MultiPoint</span><span class="p">,</span>
+        <span class="n">MultiLineString</span><span class="p">,</span>
+        <span class="n">MultiPolygon</span><span class="p">,</span>
+        <span class="n">Feature</span><span class="p">,</span>
+        <span class="n">FeatureCollection</span><span class="p">,</span>
+    <span class="p">]</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function calculates the area of the Geojson object given as input.</span>
+
+<span class="sd">    :param geojson: Geojson object for which area is to be found.</span>
+<span class="sd">    :return: area for the given Geojson object.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import area</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Feature, FeatureCollection</span>
+<span class="sd">    &gt;&gt;&gt; geometry_1 = {&quot;coordinates&quot;: [[[0, 0], [0, 10], [10, 10], [10, 0], [0, 0]]],&quot;type&quot;: &quot;Polygon&quot;}  # noqa E501</span>
+<span class="sd">    &gt;&gt;&gt; geometry_2 = {&quot;coordinates&quot;: [[[2.38, 57.322], [23.194, -20.28], [-120.43, 19.15],[2.38, 57.322]]], &quot;type&quot;: &quot;Polygon&quot;}  # noqa E501</span>
+<span class="sd">    &gt;&gt;&gt; feature_1 = Feature(geometry=geometry_1)</span>
+<span class="sd">    &gt;&gt;&gt; feature_2 = Feature(geometry=geometry_2)</span>
+<span class="sd">    &gt;&gt;&gt; feature_collection = FeatureCollection([feature_1, feature_2])</span>
+
+<span class="sd">    &gt;&gt;&gt; area(feature_collection)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">geom_reduce</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ----------- BBox --------------#</span>
+
+
+<div class="viewcode-block" id="bbox"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.bbox">[docs]</a><span class="k">def</span> <span class="nf">bbox</span><span class="p">(</span><span class="n">geojson</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function is used to generate bounding box coordinates for given geojson.</span>
+<span class="sd">    :param geojson: Geojson object for which bounding box is to be found.</span>
+<span class="sd">    :return: bounding box for the given Geojson object.</span>
+<span class="sd">    Example :-</span>
+
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import bbox</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Polygon</span>
+
+<span class="sd">    &gt;&gt;&gt; p = Polygon([(2.38, 57.322), (23.194, -20.28), (-120.43, 19.15),(2.38, 57.322)])</span>
+<span class="sd">    &gt;&gt;&gt; bb = bbox(p)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">_callback_coord_each</span><span class="p">(</span>
+        <span class="n">coord</span><span class="p">,</span> <span class="n">coord_index</span><span class="p">,</span> <span class="n">feature_index</span><span class="p">,</span> <span class="n">multi_feature_index</span><span class="p">,</span> <span class="n">geometry_index</span>
+    <span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">result</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">result</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">coord_each</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">_callback_coord_each</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ----------- BBoxPolygon --------------#</span>
+
+
+<div class="viewcode-block" id="bbox_polygon"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.bbox_polygon">[docs]</a><span class="k">def</span> <span class="nf">bbox_polygon</span><span class="p">(</span><span class="n">bbox</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">properties</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">-&gt;</span> <span class="n">Feature</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    To generate a Polygon Feature for the bounding box generated using bbox.</span>
+<span class="sd">    :param bbox: bounding box generated for a geojson.</span>
+<span class="sd">    :param properties: properties to be added to the returned feature.</span>
+<span class="sd">    :return: polygon for the given bounding box coordinates.</span>
+<span class="sd">    Example :-</span>
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import bbox_polygon, bbox</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Polygon</span>
+
+<span class="sd">    &gt;&gt;&gt; p = Polygon([((2.38, 57.322), (23.194, -20.28), (-120.43, 19.15),</span>
+<span class="sd">    ... (2.38, 57.322))])</span>
+<span class="sd">    &gt;&gt;&gt; bb = bbox(p)</span>
+<span class="sd">    &gt;&gt;&gt; feature = bbox_polygon(bb)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">west</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">south</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">east</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">north</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;bbox-polygon does not support BBox with 6 positions&quot;</span><span class="p">)</span>
+
+    <span class="n">low_left</span> <span class="o">=</span> <span class="p">(</span><span class="n">west</span><span class="p">,</span> <span class="n">south</span><span class="p">)</span>
+    <span class="n">top_left</span> <span class="o">=</span> <span class="p">(</span><span class="n">west</span><span class="p">,</span> <span class="n">north</span><span class="p">)</span>
+    <span class="n">top_right</span> <span class="o">=</span> <span class="p">(</span><span class="n">east</span><span class="p">,</span> <span class="n">north</span><span class="p">)</span>
+    <span class="n">low_right</span> <span class="o">=</span> <span class="p">(</span><span class="n">east</span><span class="p">,</span> <span class="n">south</span><span class="p">)</span>
+
+    <span class="n">bbox_polygon</span> <span class="o">=</span> <span class="n">Polygon</span><span class="p">([(</span><span class="n">low_left</span><span class="p">,</span> <span class="n">low_right</span><span class="p">,</span> <span class="n">top_right</span><span class="p">,</span> <span class="n">top_left</span><span class="p">,</span> <span class="n">low_left</span><span class="p">)])</span>
+    <span class="n">feature_bbox</span> <span class="o">=</span> <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">bbox_polygon</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;properties&quot;</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+        <span class="n">feature_bbox</span><span class="o">.</span><span class="n">properties</span> <span class="o">=</span> <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="s2">&quot;properties&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+        <span class="n">feature_bbox</span><span class="o">.</span><span class="n">properties</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="s2">&quot;id&quot;</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+        <span class="n">feature_bbox</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="s2">&quot;bbox&quot;</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+        <span class="n">feature_bbox</span><span class="o">.</span><span class="n">bbox</span> <span class="o">=</span> <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;bbox&quot;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">feature_bbox</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ----------- Center --------------#</span>
+
+
+<div class="viewcode-block" id="center"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.center">[docs]</a><span class="k">def</span> <span class="nf">center</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">properties</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Feature</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a Feature or FeatureCollection and returns the absolute center point of all</span>
+<span class="sd">    features.</span>
+<span class="sd">    :param geojson: GeoJSON for which centered to be calculated.</span>
+<span class="sd">    :param properties: Optional parameters to be set to the generated feature.</span>
+<span class="sd">    :return: Point feature for the center.</span>
+<span class="sd">    Example :-</span>
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import center</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Feature, FeatureCollection, Point</span>
+
+<span class="sd">    &gt;&gt;&gt; f1 = Feature(geometry=Point((-97.522259, 35.4691)))</span>
+<span class="sd">    &gt;&gt;&gt; f2 = Feature(geometry=Point((-97.502754, 35.463455)))</span>
+<span class="sd">    &gt;&gt;&gt; f3 = Feature(geometry=Point((-97.508269, 35.463245)))</span>
+<span class="sd">    &gt;&gt;&gt; feature_collection = FeatureCollection([f1, f2, f3])</span>
+<span class="sd">    &gt;&gt;&gt; feature = center(feature_collection)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bounding_box</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">(</span><span class="n">geojson</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">bounding_box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">bounding_box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+
+    <span class="n">point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+
+    <span class="n">center_feature</span> <span class="o">=</span> <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">point</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">properties</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s2">&quot;properties&quot;</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+        <span class="n">center_feature</span><span class="o">.</span><span class="n">properties</span> <span class="o">=</span> <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="s2">&quot;properties&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+        <span class="n">center_feature</span><span class="o">.</span><span class="n">properties</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="s2">&quot;id&quot;</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+        <span class="n">center_feature</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="s2">&quot;bbox&quot;</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+        <span class="n">center_feature</span><span class="o">.</span><span class="n">bbox</span> <span class="o">=</span> <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;bbox&quot;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">center_feature</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ----------- Envelope --------------#</span>
+
+
+<div class="viewcode-block" id="envelope"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.envelope">[docs]</a><span class="k">def</span> <span class="nf">envelope</span><span class="p">(</span><span class="n">geojson</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Feature</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes any number of features and returns a rectangular Polygon that encompasses all</span>
+<span class="sd">    vertices.</span>
+<span class="sd">    :param geojson: geojson input features for which envelope to be generated.</span>
+<span class="sd">    :return: returns envelope i.e bounding box polygon.</span>
+<span class="sd">    Example :-</span>
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import envelope</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Feature, FeatureCollection, Point</span>
+
+<span class="sd">    &gt;&gt;&gt; f1 = Feature(geometry=Point((-97.522259, 35.4691)))</span>
+<span class="sd">    &gt;&gt;&gt; f2 = Feature(geometry=Point((-97.502754, 35.463455)))</span>
+<span class="sd">    &gt;&gt;&gt; f3 = Feature(geometry=Point((-97.508269, 35.463245)))</span>
+<span class="sd">    &gt;&gt;&gt; feature_collection = FeatureCollection([f1, f2, f3])</span>
+<span class="sd">    &gt;&gt;&gt; feature = envelope(feature_collection)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">bbox_polygon</span><span class="p">(</span><span class="n">bbox</span><span class="p">(</span><span class="n">geojson</span><span class="p">))</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ----------- Length --------------#</span>
+
+
+<div class="viewcode-block" id="length"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.length">[docs]</a><span class="k">def</span> <span class="nf">length</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">units</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;km&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a geojson and measures its length in the specified units.</span>
+<span class="sd">    :param geojson: geojson for which the length is to be determined.</span>
+<span class="sd">    :param units: units in which length is to be returned.</span>
+<span class="sd">    :return: length of the geojson in specified units.</span>
+<span class="sd">    Example:-</span>
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import length</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import LineString</span>
+<span class="sd">    &gt;&gt;&gt; ls = LineString([(115, -32), (131, -22), (143, -25), (150, -34)])</span>
+<span class="sd">    &gt;&gt;&gt; length(ls)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_callback_segment_reduce</span><span class="p">(</span><span class="n">previous_value</span><span class="p">,</span> <span class="n">segment</span><span class="p">):</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">segment</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">previous_value</span> <span class="o">+</span> <span class="n">distance</span><span class="p">(</span>
+            <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span> <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span> <span class="n">units</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">segment_reduce</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">_callback_segment_reduce</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ----------- Destination --------------#</span>
+
+
+<div class="viewcode-block" id="destination"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.destination">[docs]</a><span class="k">def</span> <span class="nf">destination</span><span class="p">(</span><span class="n">origin</span><span class="p">:</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">bearing</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">-&gt;</span> <span class="n">Feature</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a Point and calculates the location of a destination point given a distance in</span>
+<span class="sd">    degrees, radians, miles, or kilometers and bearing in degrees.</span>
+
+<span class="sd">    :param origin: Start point.</span>
+<span class="sd">    :param distance: distance upto which the destination is from origin.</span>
+<span class="sd">    :param bearing: Direction in which is the destination is from origin.</span>
+<span class="sd">    :param options: Option like units of distance and properties to be passed to</span>
+<span class="sd">        destination point feature, value</span>
+<span class="sd">        for units are &#39;mi&#39;, &#39;km&#39;, &#39;deg&#39; and &#39;rad&#39;.</span>
+<span class="sd">    :return: Feature: destination point in at the given distance and given direction.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import destination</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Point, Feature</span>
+<span class="sd">    &gt;&gt;&gt; origin = Feature(geometry=Point([-75.343, 39.984]))</span>
+<span class="sd">    &gt;&gt;&gt; distance = 50</span>
+<span class="sd">    &gt;&gt;&gt; bearing = 90</span>
+<span class="sd">    &gt;&gt;&gt; options = {&#39;units&#39;: &#39;mi&#39;}</span>
+<span class="sd">    &gt;&gt;&gt; destination(origin,distance,bearing,options)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">coordinates1</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+    <span class="n">longitude1</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coordinates1</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">latitude1</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coordinates1</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">bearingRad</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">bearing</span><span class="p">))</span>
+    <span class="k">if</span> <span class="s2">&quot;units&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">radian</span> <span class="o">=</span> <span class="n">length_to_radians</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">radian</span> <span class="o">=</span> <span class="n">length_to_radians</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span>
+
+    <span class="n">latitude2</span> <span class="o">=</span> <span class="n">asin</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">sin</span><span class="p">(</span><span class="n">latitude1</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">radian</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span><span class="n">cos</span><span class="p">(</span><span class="n">latitude1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">radian</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">bearingRad</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="n">longitude2</span> <span class="o">=</span> <span class="n">longitude1</span> <span class="o">+</span> <span class="n">atan2</span><span class="p">(</span>
+        <span class="n">sin</span><span class="p">(</span><span class="n">bearingRad</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">radian</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">latitude1</span><span class="p">),</span>
+        <span class="n">cos</span><span class="p">(</span><span class="n">radian</span><span class="p">)</span> <span class="o">-</span> <span class="n">sin</span><span class="p">(</span><span class="n">latitude1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">latitude2</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">lng</span> <span class="o">=</span> <span class="n">degrees</span><span class="p">(</span><span class="n">longitude2</span><span class="p">)</span>
+    <span class="n">lat</span> <span class="o">=</span> <span class="n">degrees</span><span class="p">(</span><span class="n">latitude2</span><span class="p">)</span>
+
+    <span class="n">point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">((</span><span class="n">lng</span><span class="p">,</span> <span class="n">lat</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">Feature</span><span class="p">(</span>
+        <span class="n">geometry</span><span class="o">=</span><span class="n">point</span><span class="p">,</span>
+        <span class="n">properties</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;properties&quot;</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">else</span> <span class="p">{},</span>
+    <span class="p">)</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ----------- Centroid --------------#</span>
+
+
+<div class="viewcode-block" id="centroid"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.centroid">[docs]</a><span class="k">def</span> <span class="nf">centroid</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">properties</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Feature</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes one or more features and calculates the centroid using the mean of all vertices.</span>
+<span class="sd">    :param geojson: Input features</span>
+<span class="sd">    :param properties: Properties to be set to the output Feature point</span>
+<span class="sd">    :return: Feature: Point feature which is the centroid of the given features</span>
+<span class="sd">    Example:-</span>
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import centroid</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Polygon</span>
+<span class="sd">    &gt;&gt;&gt; polygon = Polygon([((-81, 41), (-88, 36), (-84, 31), (-80, 33), (-77, 39),</span>
+<span class="sd">    (-81, 41))])</span>
+<span class="sd">    &gt;&gt;&gt; centroid(polygon)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x_sum</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">y_sum</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="nb">len</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">_callback_coord_each</span><span class="p">(</span>
+        <span class="n">coord</span><span class="p">,</span> <span class="n">coord_index</span><span class="p">,</span> <span class="n">feature_index</span><span class="p">,</span> <span class="n">multi_feature_index</span><span class="p">,</span> <span class="n">geometry_index</span>
+    <span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">x_sum</span><span class="p">,</span> <span class="n">y_sum</span><span class="p">,</span> <span class="nb">len</span>
+        <span class="n">x_sum</span> <span class="o">+=</span> <span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">y_sum</span> <span class="o">+=</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="nb">len</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">coord_each</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">_callback_coord_each</span><span class="p">)</span>
+    <span class="n">point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">((</span><span class="n">x_sum</span> <span class="o">/</span> <span class="nb">len</span><span class="p">,</span> <span class="n">y_sum</span> <span class="o">/</span> <span class="nb">len</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">point</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">properties</span> <span class="k">if</span> <span class="n">properties</span> <span class="k">else</span> <span class="p">{})</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ----------- Along --------------#</span>
+
+
+<div class="viewcode-block" id="along"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.along">[docs]</a><span class="k">def</span> <span class="nf">along</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;km&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Feature</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function is used identify a Point at a specified distance along a LineString.</span>
+<span class="sd">    :param line: LineString on which the point to be identified</span>
+<span class="sd">    :param dist: Distance from the start of the LineString</span>
+<span class="sd">    :param unit: unit of distance</span>
+<span class="sd">    :return: Feature : Point at the distance on the LineString passed</span>
+<span class="sd">    Example :-</span>
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import along</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import LineString, Feature</span>
+<span class="sd">    &gt;&gt;&gt; ls = Feature(geometry=LineString([(-83, 30), (-84, 36), (-78, 41)]))</span>
+<span class="sd">    &gt;&gt;&gt; along(ls,200,&#39;mi&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Feature&quot;</span><span class="p">:</span>
+        <span class="n">geom</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">geom</span> <span class="o">=</span> <span class="n">line</span>
+
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+    <span class="n">travelled</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="n">unit</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">dist</span> <span class="o">&gt;=</span> <span class="n">travelled</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">break</span>
+        <span class="k">elif</span> <span class="n">travelled</span> <span class="o">&gt;=</span> <span class="n">dist</span><span class="p">:</span>
+            <span class="n">overshot</span> <span class="o">=</span> <span class="n">dist</span> <span class="o">-</span> <span class="n">travelled</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">overshot</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">direction</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">bearing</span><span class="p">(</span>
+                        <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">i</span><span class="p">])),</span>
+                        <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])),</span>
+                    <span class="p">)</span>
+                    <span class="o">-</span> <span class="mi">180</span>
+                <span class="p">)</span>
+
+                <span class="n">interpolated</span> <span class="o">=</span> <span class="n">destination</span><span class="p">(</span>
+                    <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">i</span><span class="p">])),</span> <span class="n">overshot</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">options</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="n">interpolated</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">travelled</span> <span class="o">+=</span> <span class="n">distance</span><span class="p">(</span>
+                <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">i</span><span class="p">])),</span>
+                <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])),</span>
+                <span class="n">unit</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="n">point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">point</span><span class="p">)</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ----------- Midpoint --------------#</span>
+
+
+<div class="viewcode-block" id="midpoint"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.midpoint">[docs]</a><span class="k">def</span> <span class="nf">midpoint</span><span class="p">(</span><span class="n">point1</span><span class="p">:</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">point2</span><span class="p">:</span> <span class="n">Feature</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Feature</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function is used to get midpoint between any the two points.</span>
+<span class="sd">    :param point1: First point.</span>
+<span class="sd">    :param point2: Second point.</span>
+<span class="sd">    :return: Feature: Point which is the midpoint of the two points given as input.</span>
+<span class="sd">    Example:-</span>
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import midpoint</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Point, Feature</span>
+<span class="sd">    &gt;&gt;&gt; point1 = Feature(geometry=Point((144.834823, -37.771257)))</span>
+<span class="sd">    &gt;&gt;&gt; point2 = Feature(geometry=Point((145.14244, -37.830937)))</span>
+<span class="sd">    &gt;&gt;&gt; midpoint(point1, point2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">distance</span><span class="p">(</span><span class="n">point1</span><span class="p">,</span> <span class="n">point2</span><span class="p">)</span>
+    <span class="n">heading</span> <span class="o">=</span> <span class="n">bearing</span><span class="p">(</span><span class="n">point1</span><span class="p">,</span> <span class="n">point2</span><span class="p">)</span>
+    <span class="n">midpoint</span> <span class="o">=</span> <span class="n">destination</span><span class="p">(</span><span class="n">point1</span><span class="p">,</span> <span class="n">dist</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">heading</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">midpoint</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ----------- nearest point --------------#</span>
+
+
+<div class="viewcode-block" id="nearest_point"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.nearest_point">[docs]</a><span class="k">def</span> <span class="nf">nearest_point</span><span class="p">(</span><span class="n">target_point</span><span class="p">:</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">FeatureCollection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Feature</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a reference Point Feature and FeatureCollection of point features and returns</span>
+<span class="sd">    the point from the FeatureCollection closest to the reference Point Feature.</span>
+
+<span class="sd">    :param target_point: Feature Point of reference.</span>
+<span class="sd">    :param points: FeatureCollection of points.</span>
+<span class="sd">    :return: a Point Feature from the FeatureCollection which is closest to the reference</span>
+<span class="sd">         Point.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import nearest_point</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Point, Feature, FeatureCollection</span>
+<span class="sd">    &gt;&gt;&gt; f1 = Feature(geometry=Point((28.96991729736328,41.01190001748873)))</span>
+<span class="sd">    &gt;&gt;&gt; f2 = Feature(geometry=Point((28.948459, 41.024204)))</span>
+<span class="sd">    &gt;&gt;&gt; f3 = Feature(geometry=Point((28.938674, 41.013324)))</span>
+<span class="sd">    &gt;&gt;&gt; fc = FeatureCollection([f1, f2 ,f3])</span>
+<span class="sd">    &gt;&gt;&gt; t = Feature(geometry=Point((28.973865, 41.011122)))</span>
+<span class="sd">    &gt;&gt;&gt; nearest_point(t ,fc)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">target_point</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;target_point is required&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">points</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;points is required&quot;</span><span class="p">)</span>
+
+    <span class="n">min_dist</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+    <span class="n">best_feature_index</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">_callback_feature_each</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">feature_index</span><span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">min_dist</span><span class="p">,</span> <span class="n">best_feature_index</span>
+        <span class="n">distance_to_point</span> <span class="o">=</span> <span class="n">distance</span><span class="p">(</span><span class="n">target_point</span><span class="p">,</span> <span class="n">pt</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">distance_to_point</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_dist</span><span class="p">:</span>
+            <span class="n">best_feature_index</span> <span class="o">=</span> <span class="n">feature_index</span>
+            <span class="n">min_dist</span> <span class="o">=</span> <span class="n">distance_to_point</span>
+
+    <span class="n">feature_each</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">_callback_feature_each</span><span class="p">)</span>
+
+    <span class="n">nearest</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">][</span><span class="n">best_feature_index</span><span class="p">]</span>
+    <span class="n">nearest</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;featureIndex&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">best_feature_index</span>
+    <span class="n">nearest</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;distanceToPoint&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">min_dist</span>
+    <span class="k">return</span> <span class="n">nearest</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ----------- point on feature --------------#</span>
+
+
+<div class="viewcode-block" id="point_on_feature"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.point_on_feature">[docs]</a><span class="k">def</span> <span class="nf">point_on_feature</span><span class="p">(</span><span class="n">geojson</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Feature</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a Feature or FeatureCollection and returns a Point guaranteed to be on the</span>
+<span class="sd">    surface of the feature.</span>
+<span class="sd">    :param geojson: Feature or FeatureCollection on which the Point is to be found.</span>
+<span class="sd">    :return: Feature point which on the provided feature.</span>
+<span class="sd">    Example:-</span>
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import point_on_feature</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import  Polygon, Feature</span>
+<span class="sd">    &gt;&gt;&gt; point = Polygon([((116, -36), (131, -32), (146, -43), (155, -25), (133, -9),</span>
+<span class="sd">    (111, -22), (116, -36))])</span>
+<span class="sd">    &gt;&gt;&gt; feature = Feature(geometry=point)</span>
+<span class="sd">    &gt;&gt;&gt; point_on_feature(feature)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fc</span> <span class="o">=</span> <span class="n">_normalize</span><span class="p">(</span><span class="n">geojson</span><span class="p">)</span>
+
+    <span class="n">cent</span> <span class="o">=</span> <span class="n">centroid</span><span class="p">(</span><span class="n">fc</span><span class="p">)</span>
+
+    <span class="n">on_surface</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">on_surface</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">]):</span>
+        <span class="n">on_line</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">geom</span> <span class="o">=</span> <span class="n">fc</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;geometry&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Point&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">cent</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="ow">and</span> <span class="n">cent</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="n">on_surface</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;MultiPoint&quot;</span><span class="p">:</span>
+            <span class="n">on_multi_point</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="n">on_multi_point</span> <span class="ow">and</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">cent</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="ow">and</span> <span class="n">cent</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">):</span>
+                    <span class="n">on_surface</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">on_multi_point</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;LineString&quot;</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="n">on_line</span> <span class="ow">and</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">cent</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">cent</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">x1</span> <span class="o">=</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">y1</span> <span class="o">=</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">x2</span> <span class="o">=</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">y2</span> <span class="o">=</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">_point_on_segment</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">):</span>
+                    <span class="n">on_line</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">on_surface</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;MultiLineString&quot;</span><span class="p">:</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]):</span>
+                <span class="n">on_line</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+                <span class="k">while</span> <span class="ow">not</span> <span class="n">on_line</span> <span class="ow">and</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="n">cent</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">cent</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">x1</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">y1</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">x2</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">y2</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">_point_on_segment</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">):</span>
+                        <span class="n">on_line</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="n">on_surface</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Polygon&quot;</span> <span class="ow">or</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;MultiPolygon&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">boolean_point_in_polygon</span><span class="p">(</span><span class="n">cent</span><span class="p">,</span> <span class="n">geom</span><span class="p">):</span>
+                <span class="n">on_surface</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">on_surface</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cent</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vertices_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">])):</span>
+            <span class="n">vertices_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">explode</span><span class="p">(</span><span class="n">fc</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">])[</span><span class="s2">&quot;features&quot;</span><span class="p">])</span>
+        <span class="n">vertices</span> <span class="o">=</span> <span class="n">FeatureCollection</span><span class="p">(</span><span class="n">vertices_list</span><span class="p">)</span>
+        <span class="n">point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="n">nearest_point</span><span class="p">(</span><span class="n">cent</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">point</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="_normalize"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement._normalize">[docs]</a><span class="k">def</span> <span class="nf">_normalize</span><span class="p">(</span><span class="n">geojson</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;FeatureCollection&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;Feature&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">FeatureCollection</span><span class="p">([</span><span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">geojson</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="n">FeatureCollection</span><span class="p">([</span><span class="n">geojson</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">geojson</span></div>
+
+
+<div class="viewcode-block" id="_point_on_segment"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement._point_on_segment">[docs]</a><span class="k">def</span> <span class="nf">_point_on_segment</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">):</span>
+    <span class="n">ab</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">((</span><span class="n">x2</span> <span class="o">-</span> <span class="n">x1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x2</span> <span class="o">-</span> <span class="n">x1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">y2</span> <span class="o">-</span> <span class="n">y1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">y2</span> <span class="o">-</span> <span class="n">y1</span><span class="p">))</span>
+    <span class="n">ap</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">x1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">y1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">y1</span><span class="p">))</span>
+    <span class="n">pb</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">((</span><span class="n">x2</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x2</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">y2</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">y2</span> <span class="o">-</span> <span class="n">y</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ab</span> <span class="o">==</span> <span class="p">(</span><span class="n">ap</span> <span class="o">+</span> <span class="n">pb</span><span class="p">)</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ------------ boolean point in polygon ----------------#</span>
+
+
+<div class="viewcode-block" id="boolean_point_in_polygon"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.boolean_point_in_polygon">[docs]</a><span class="k">def</span> <span class="nf">boolean_point_in_polygon</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">polygon</span><span class="p">,</span> <span class="n">ignore_boundary</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a Point or a Point Feature and Polygon or Polygon Feature as input and returns</span>
+<span class="sd">    True if Point is in given Feature.</span>
+
+<span class="sd">    :param point: Point or Point Feature.</span>
+<span class="sd">    :param polygon: Polygon or Polygon Feature.</span>
+<span class="sd">    :param ignore_boundary: [Optional] default value is False, specify whether to exclude</span>
+<span class="sd">        boundary of the given polygon or not.</span>
+<span class="sd">    :return: True if the given Point is in Polygons else False</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import boolean_point_in_polygon</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Point, MultiPolygon, Feature</span>
+<span class="sd">    &gt;&gt;&gt; point = Feature(geometry=Point((-77, 44)))</span>
+<span class="sd">    &gt;&gt;&gt; polygon = Feature(geometry=MultiPolygon([([(-81, 41), (-81, 47), (-72, 47),</span>
+<span class="sd">    (-72, 41), (-81, 41)],),</span>
+<span class="sd">    &gt;&gt;&gt; ([(3.78, 9.28), (-130.91, 1.52), (35.12, 72.234), (3.78, 9.28)],)]))</span>
+<span class="sd">    &gt;&gt;&gt; boolean_point_in_polygon(point, polygon)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">point</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;point is required&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">polygon</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;polygon is required&quot;</span><span class="p">)</span>
+
+    <span class="n">pt</span> <span class="o">=</span> <span class="n">get_coord</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+    <span class="n">geom</span> <span class="o">=</span> <span class="n">get_geom</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
+    <span class="n">geo_type</span> <span class="o">=</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+    <span class="n">bbox</span> <span class="o">=</span> <span class="n">polygon</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bbox&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">polys</span> <span class="o">=</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">bbox</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">in_bbox</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">bbox</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">geo_type</span> <span class="o">==</span> <span class="s2">&quot;Polygon&quot;</span><span class="p">:</span>
+        <span class="n">polys</span> <span class="o">=</span> <span class="p">[</span><span class="n">polys</span><span class="p">]</span>
+
+    <span class="n">inside_poly</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">polys</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">in_ring</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">polys</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">ignore_boundary</span><span class="p">):</span>
+            <span class="n">in_hole</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">while</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">polys</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">in_hole</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">in_ring</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">polys</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">],</span> <span class="ow">not</span> <span class="n">ignore_boundary</span><span class="p">):</span>
+                    <span class="n">in_hole</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">in_hole</span><span class="p">:</span>
+                <span class="n">inside_poly</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="n">inside_poly</span></div>
+
+
+<div class="viewcode-block" id="in_ring"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.in_ring">[docs]</a><span class="k">def</span> <span class="nf">in_ring</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">ring</span><span class="p">,</span> <span class="n">ignore_boundary</span><span class="p">):</span>
+    <span class="n">is_inside</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">ring</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">ring</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">ring</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">ring</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">ring</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">ring</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">ring</span> <span class="o">=</span> <span class="n">ring</span><span class="p">[</span><span class="mi">0</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">ring</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ring</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ring</span><span class="p">)):</span>
+        <span class="n">xi</span> <span class="o">=</span> <span class="n">ring</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">yi</span> <span class="o">=</span> <span class="n">ring</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">xj</span> <span class="o">=</span> <span class="n">ring</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">yj</span> <span class="o">=</span> <span class="n">ring</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">on_boundary</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">xi</span> <span class="o">-</span> <span class="n">xj</span><span class="p">)</span> <span class="o">+</span> <span class="n">yi</span> <span class="o">*</span> <span class="p">(</span><span class="n">xj</span> <span class="o">-</span> <span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">yj</span> <span class="o">*</span> <span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">xi</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="p">((</span><span class="n">xi</span> <span class="o">-</span> <span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">xj</span> <span class="o">-</span> <span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="p">((</span><span class="n">yi</span> <span class="o">-</span> <span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">yj</span> <span class="o">-</span> <span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">on_boundary</span><span class="p">:</span>
+            <span class="k">return</span> <span class="ow">not</span> <span class="n">ignore_boundary</span>
+        <span class="n">intersect</span> <span class="o">=</span> <span class="p">((</span><span class="n">yi</span> <span class="o">&gt;</span> <span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">!=</span> <span class="p">(</span><span class="n">yj</span> <span class="o">&gt;</span> <span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">xj</span> <span class="o">-</span> <span class="n">xi</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">yi</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">yj</span> <span class="o">-</span> <span class="n">yi</span><span class="p">)</span> <span class="o">+</span> <span class="n">xi</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">intersect</span><span class="p">:</span>
+            <span class="n">is_inside</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">is_inside</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">i</span>
+    <span class="k">return</span> <span class="n">is_inside</span></div>
+
+
+<div class="viewcode-block" id="in_bbox"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.in_bbox">[docs]</a><span class="k">def</span> <span class="nf">in_bbox</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">bbox</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">and</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ------------ Explode -----------#</span>
+
+
+<div class="viewcode-block" id="explode"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.explode">[docs]</a><span class="k">def</span> <span class="nf">explode</span><span class="p">(</span><span class="n">geojson</span><span class="p">):</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;FeatureCollection&quot;</span><span class="p">:</span>
+
+        <span class="k">def</span> <span class="nf">_callback_feature_each</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">feature_index</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">_callback_coord_each</span><span class="p">(</span>
+                <span class="n">coord</span><span class="p">,</span> <span class="n">coord_index</span><span class="p">,</span> <span class="n">feature_index</span><span class="p">,</span> <span class="n">multi_feature_index</span><span class="p">,</span> <span class="n">geometry_index</span><span class="p">,</span>
+            <span class="p">):</span>
+                <span class="k">nonlocal</span> <span class="n">points</span>
+                <span class="n">point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
+                <span class="n">points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">point</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]))</span>
+
+            <span class="n">coord_each</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">_callback_coord_each</span><span class="p">)</span>
+
+        <span class="n">feature_each</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">_callback_feature_each</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="k">def</span> <span class="nf">_callback_coord_each</span><span class="p">(</span>
+            <span class="n">coord</span><span class="p">,</span> <span class="n">coord_index</span><span class="p">,</span> <span class="n">feature_index</span><span class="p">,</span> <span class="n">multi_feature_index</span><span class="p">,</span> <span class="n">geometry_index</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">nonlocal</span> <span class="n">points</span><span class="p">,</span> <span class="n">geojson</span>
+            <span class="n">point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
+            <span class="n">points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">point</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">geojson</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]))</span>
+
+        <span class="n">coord_each</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">_callback_coord_each</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">FeatureCollection</span><span class="p">(</span><span class="n">points</span><span class="p">)</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ------------ polygon tangents -----------#</span>
+
+
+<div class="viewcode-block" id="polygon_tangents"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.polygon_tangents">[docs]</a><span class="k">def</span> <span class="nf">polygon_tangents</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">polygon</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds the tangents of a (Multi)Polygon from a Point.</span>
+<span class="sd">    :param point: Point or Point Feature.</span>
+<span class="sd">    :param polygon: (Multi)Polygon or (Multi)Polygon Feature.</span>
+<span class="sd">    :return: FeatureCollection of two tangent Point Feature.</span>
+<span class="sd">    Example:-</span>
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import polygon_tangents</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Polygon, Point, Feature</span>
+<span class="sd">    &gt;&gt;&gt; point = Feature(geometry=Point((61, 5)))</span>
+<span class="sd">    &gt;&gt;&gt; polygon = Feature(geometry=Polygon([(11, 0), (22, 4), (31, 0), (31, 11),</span>
+<span class="sd">    ...                                 (21, 15), (11, 11), (11, 0)]))</span>
+<span class="sd">    &gt;&gt;&gt; polygon_tangents(point, polygon)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">point_coords</span> <span class="o">=</span> <span class="n">get_coords</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+    <span class="n">poly_coords</span> <span class="o">=</span> <span class="n">get_coords</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
+
+    <span class="n">enext</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">bbox_points</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
+    <span class="n">nearest_pt_index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nearest</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">bbox_points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">point_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bbox_points</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="ow">and</span> <span class="n">bbox_points</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">point_coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bbox_points</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="p">):</span>
+        <span class="n">nearest</span> <span class="o">=</span> <span class="n">nearest_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">explode</span><span class="p">(</span><span class="n">polygon</span><span class="p">))</span>
+        <span class="n">nearest_pt_index</span> <span class="o">=</span> <span class="n">nearest</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">featureIndex</span>
+
+    <span class="n">geo_type</span> <span class="o">=</span> <span class="n">get_type</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">geo_type</span> <span class="o">==</span> <span class="s2">&quot;Polygon&quot;</span><span class="p">:</span>
+        <span class="n">rtan</span> <span class="o">=</span> <span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">nearest_pt_index</span><span class="p">]</span>
+        <span class="n">ltan</span> <span class="o">=</span> <span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">nearest</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">nearest</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">point_coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">ltan</span> <span class="o">=</span> <span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">nearest_pt_index</span><span class="p">]</span>
+
+        <span class="n">eprev</span> <span class="o">=</span> <span class="n">_is_left</span><span class="p">(</span>
+            <span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="nb">len</span><span class="p">(</span><span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">point_coords</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">process_polygon</span><span class="p">(</span><span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">point_coords</span><span class="p">,</span> <span class="n">eprev</span><span class="p">,</span> <span class="n">enext</span><span class="p">,</span> <span class="n">rtan</span><span class="p">,</span> <span class="n">ltan</span><span class="p">)</span>
+        <span class="n">rtan</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ltan</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">geo_type</span> <span class="o">==</span> <span class="s2">&quot;MultiPolygon&quot;</span><span class="p">:</span>
+        <span class="n">closest_feature</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">closest_vertex</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">vertices_counted</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="n">closest_feature</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">vertice_found</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">i2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">])):</span>
+                <span class="n">closest_vertex</span> <span class="o">=</span> <span class="n">i2</span>
+                <span class="k">if</span> <span class="n">vertices_counted</span> <span class="o">==</span> <span class="n">nearest_pt_index</span><span class="p">:</span>
+                    <span class="n">vertice_found</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+                <span class="n">vertices_counted</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">vertice_found</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="n">rtan</span> <span class="o">=</span> <span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">closest_feature</span><span class="p">][</span><span class="n">closest_vertex</span><span class="p">]</span>
+        <span class="n">ltan</span> <span class="o">=</span> <span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">closest_feature</span><span class="p">][</span><span class="n">closest_vertex</span><span class="p">]</span>
+        <span class="n">eprev</span> <span class="o">=</span> <span class="n">_is_left</span><span class="p">(</span>
+            <span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="nb">len</span><span class="p">(</span><span class="n">poly_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="n">point_coords</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">ring</span> <span class="ow">in</span> <span class="n">poly_coords</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">process_polygon</span><span class="p">(</span><span class="n">ring</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">point_coords</span><span class="p">,</span> <span class="n">eprev</span><span class="p">,</span> <span class="n">enext</span><span class="p">,</span> <span class="n">rtan</span><span class="p">,</span> <span class="n">ltan</span><span class="p">)</span>
+            <span class="n">rtan</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ltan</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">FeatureCollection</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">rtan</span><span class="p">)),</span> <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">ltan</span><span class="p">))]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="process_polygon"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.process_polygon">[docs]</a><span class="k">def</span> <span class="nf">process_polygon</span><span class="p">(</span><span class="n">polygon_coords</span><span class="p">,</span> <span class="n">pt_coords</span><span class="p">,</span> <span class="n">eprev</span><span class="p">,</span> <span class="n">enext</span><span class="p">,</span> <span class="n">rtan</span><span class="p">,</span> <span class="n">ltan</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">polygon_coords</span><span class="p">)):</span>
+        <span class="n">current_coords</span> <span class="o">=</span> <span class="n">polygon_coords</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">polygon_coords</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">next_coord_pair</span> <span class="o">=</span> <span class="n">polygon_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">next_coord_pair</span> <span class="o">=</span> <span class="n">polygon_coords</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">enext</span> <span class="o">=</span> <span class="n">_is_left</span><span class="p">(</span><span class="n">current_coords</span><span class="p">,</span> <span class="n">next_coord_pair</span><span class="p">,</span> <span class="n">pt_coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">eprev</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">enext</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_below</span><span class="p">(</span><span class="n">pt_coords</span><span class="p">,</span> <span class="n">current_coords</span><span class="p">,</span> <span class="n">rtan</span><span class="p">):</span>
+                <span class="n">rtan</span> <span class="o">=</span> <span class="n">current_coords</span>
+        <span class="k">elif</span> <span class="n">eprev</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">enext</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_above</span><span class="p">(</span><span class="n">pt_coords</span><span class="p">,</span> <span class="n">current_coords</span><span class="p">,</span> <span class="n">ltan</span><span class="p">):</span>
+                <span class="n">ltan</span> <span class="o">=</span> <span class="n">current_coords</span>
+        <span class="n">eprev</span> <span class="o">=</span> <span class="n">enext</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">rtan</span><span class="p">,</span> <span class="n">ltan</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="_is_above"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement._is_above">[docs]</a><span class="k">def</span> <span class="nf">_is_above</span><span class="p">(</span><span class="n">point1</span><span class="p">,</span> <span class="n">point2</span><span class="p">,</span> <span class="n">point3</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_is_left</span><span class="p">(</span><span class="n">point1</span><span class="p">,</span> <span class="n">point2</span><span class="p">,</span> <span class="n">point3</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="_is_below"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement._is_below">[docs]</a><span class="k">def</span> <span class="nf">_is_below</span><span class="p">(</span><span class="n">point1</span><span class="p">,</span> <span class="n">point2</span><span class="p">,</span> <span class="n">point3</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_is_left</span><span class="p">(</span><span class="n">point1</span><span class="p">,</span> <span class="n">point2</span><span class="p">,</span> <span class="n">point3</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="_is_left"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement._is_left">[docs]</a><span class="k">def</span> <span class="nf">_is_left</span><span class="p">(</span><span class="n">point1</span><span class="p">,</span> <span class="n">point2</span><span class="p">,</span> <span class="n">point3</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">point2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">point1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">point3</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">point1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="p">(</span><span class="n">point3</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">point1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span>
+        <span class="n">point2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">point1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ------------ point to line distance -----------#</span>
+
+
+<div class="viewcode-block" id="point_to_line_distance"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.point_to_line_distance">[docs]</a><span class="k">def</span> <span class="nf">point_to_line_distance</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;km&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;geodesic&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the minimum distance between a Point and any segment of the LineString.</span>
+
+<span class="sd">    :param point: Point Feature from which distance to be measured.</span>
+<span class="sd">    :param line: Point LineString from which distance to be measured.</span>
+<span class="sd">    :param units: units for distance &#39;km&#39;, &#39;m&#39;, &#39;mi, &#39;ft&#39;, &#39;in&#39;, &#39;deg&#39;, &#39;cen&#39;, &#39;rad&#39;,</span>
+<span class="sd">        &#39;naut&#39;, &#39;yd&#39;</span>
+<span class="sd">    :param method: Method which is used to calculate, values can be &#39;geodesic&#39; or &#39;planar&#39;</span>
+<span class="sd">    :return: Approximate distance between the LineString and Point</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import point_to_line_distance</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import LineString, Point, Feature</span>
+<span class="sd">    &gt;&gt;&gt; point = Feature(geometry=Point((0, 0)))</span>
+<span class="sd">    &gt;&gt;&gt; linestring = Feature(geometry=LineString([(1, 1),(-1, 1)]))</span>
+<span class="sd">    &gt;&gt;&gt; point_to_line_distance(point, linestring)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">!=</span> <span class="s2">&quot;geodesic&quot;</span> <span class="ow">and</span> <span class="n">method</span> <span class="o">!=</span> <span class="s2">&quot;planar&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;method name is incorrect ot should be either geodesic or planar&quot;</span><span class="p">)</span>
+
+    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="n">units</span><span class="p">,</span> <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">method</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">point</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;pt is required&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">point</span> <span class="o">=</span> <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">point</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">point</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Point&quot;</span><span class="p">:</span>
+        <span class="n">point</span> <span class="o">=</span> <span class="n">Feature</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">feature_of</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="s2">&quot;Point&quot;</span><span class="p">,</span> <span class="s2">&quot;point&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;line is required&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">LineString</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;LineString&quot;</span><span class="p">:</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">line</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">feature_of</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="s2">&quot;LineString&quot;</span><span class="p">,</span> <span class="s2">&quot;line&quot;</span><span class="p">)</span>
+
+    <span class="n">distance</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_callback_segment_each</span><span class="p">(</span>
+        <span class="n">current_segment</span><span class="p">,</span>
+        <span class="n">feature_index</span><span class="p">,</span>
+        <span class="n">multi_feature_index</span><span class="p">,</span>
+        <span class="n">geometry_index</span><span class="p">,</span>
+        <span class="n">segment_index</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">options</span><span class="p">,</span> <span class="n">distance</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">current_segment</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">current_segment</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">distance_to_segment</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="n">distance</span><span class="p">:</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="n">d</span>
+
+    <span class="n">segment_each</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">_callback_segment_each</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">convert_length</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="distance_to_segment"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.distance_to_segment">[docs]</a><span class="k">def</span> <span class="nf">distance_to_segment</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+    <span class="n">c1</span> <span class="o">=</span> <span class="n">_dot</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">c1</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_calc_distance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;method&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">})</span>
+    <span class="n">c2</span> <span class="o">=</span> <span class="n">_dot</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">c2</span> <span class="o">&lt;=</span> <span class="n">c1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_calc_distance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;method&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">})</span>
+    <span class="n">b2</span> <span class="o">=</span> <span class="n">c1</span> <span class="o">/</span> <span class="n">c2</span>
+    <span class="n">Pb</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">b2</span> <span class="o">*</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">b2</span> <span class="o">*</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+
+    <span class="k">return</span> <span class="n">_calc_distance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">Pb</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;method&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="s2">&quot;deg&quot;</span><span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="_calc_distance"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement._calc_distance">[docs]</a><span class="k">def</span> <span class="nf">_calc_distance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;method&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;planar&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">rhumb_distance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">distance</span><span class="p">(</span>
+            <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">a</span><span class="p">)),</span>
+            <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">b</span><span class="p">)),</span>
+            <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="_dot"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement._dot">[docs]</a><span class="k">def</span> <span class="nf">_dot</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ------------ rhumb bearing -----------#</span>
+
+
+<div class="viewcode-block" id="rhumb_bearing"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.rhumb_bearing">[docs]</a><span class="k">def</span> <span class="nf">rhumb_bearing</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes two points and finds the bearing angle between them along a Rhumb line,</span>
+<span class="sd">    i.e. the angle measured in degrees start the north line (0 degrees).</span>
+
+<span class="sd">    :param start: Start Point or Point Feature.</span>
+<span class="sd">    :param end: End Point or Point Feature.</span>
+<span class="sd">    :param final: Calculates the final bearing if true</span>
+<span class="sd">    :return: bearing from north in decimal degrees, between -180 and 180 degrees</span>
+<span class="sd">        (positive clockwise)</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import rhumb_bearing</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Feature, Point</span>
+<span class="sd">    &gt;&gt;&gt; start = Feature(geometry=Point((-75.343, 39.984)))</span>
+<span class="sd">    &gt;&gt;&gt; end = Feature(geometry=Point((-75.534, 39.123)))</span>
+<span class="sd">    &gt;&gt;&gt; rhumb_bearing(start, end, True)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">final</span><span class="p">:</span>
+        <span class="n">bear_360</span> <span class="o">=</span> <span class="n">calculate_rhumb_bearing</span><span class="p">(</span><span class="n">get_coord</span><span class="p">(</span><span class="n">end</span><span class="p">),</span> <span class="n">get_coord</span><span class="p">(</span><span class="n">start</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">bear_360</span> <span class="o">=</span> <span class="n">calculate_rhumb_bearing</span><span class="p">(</span><span class="n">get_coord</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="n">get_coord</span><span class="p">(</span><span class="n">end</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">bear_360</span> <span class="o">&gt;</span> <span class="mi">180</span><span class="p">:</span>
+        <span class="n">bear_180</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="p">(</span><span class="mi">360</span> <span class="o">-</span> <span class="n">bear_360</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">bear_180</span> <span class="o">=</span> <span class="n">bear_360</span>
+
+    <span class="k">return</span> <span class="n">bear_180</span></div>
+
+
+<div class="viewcode-block" id="calculate_rhumb_bearing"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.calculate_rhumb_bearing">[docs]</a><span class="k">def</span> <span class="nf">calculate_rhumb_bearing</span><span class="p">(</span><span class="n">fro</span><span class="p">,</span> <span class="n">to</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; #TODO: Add description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">phi1</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="n">fro</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">phi2</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="n">to</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">delta_lambda</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="n">to</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">fro</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">delta_lambda</span> <span class="o">&gt;</span> <span class="n">pi</span><span class="p">:</span>
+        <span class="n">delta_lambda</span> <span class="o">-=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">pi</span>
+    <span class="k">if</span> <span class="n">delta_lambda</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">pi</span><span class="p">:</span>
+        <span class="n">delta_lambda</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">pi</span>
+
+    <span class="n">delta_psi</span> <span class="o">=</span> <span class="n">log</span><span class="p">(</span><span class="n">tan</span><span class="p">(</span><span class="n">phi2</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span> <span class="o">/</span> <span class="n">tan</span><span class="p">(</span><span class="n">phi1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">))</span>
+
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">atan2</span><span class="p">(</span><span class="n">delta_lambda</span><span class="p">,</span> <span class="n">delta_psi</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">degrees</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">+</span> <span class="mi">360</span><span class="p">)</span> <span class="o">%</span> <span class="mi">360</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ------------ rhumb destination -----------#</span>
+
+
+<div class="viewcode-block" id="rhumb_destination"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.rhumb_destination">[docs]</a><span class="k">def</span> <span class="nf">rhumb_destination</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">bearing</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Feature</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the destination Point having travelled the given distance along a Rhumb line</span>
+<span class="sd">    from the origin Point with the (varant) given bearing.</span>
+
+<span class="sd">    :param origin: Starting Point</span>
+<span class="sd">    :param distance: Distance from the starting point</span>
+<span class="sd">    :param bearing: Varant bearing angle ranging from -180 to 180 degrees from north</span>
+<span class="sd">    :param options: A dict of two values &#39;units&#39; for the units of distance provided and</span>
+<span class="sd">        &#39;properties&#39; that are to be passed to the Destination Feature Point</span>
+<span class="sd">        Example :- {&#39;units&#39;:&#39;mi&#39;, &#39;properties&#39;: {&quot;marker-color&quot;: &quot;F00&quot;}}</span>
+<span class="sd">    :return: Destination Feature Point</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import rhumb_destination</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Point, Feature</span>
+<span class="sd">    &gt;&gt;&gt; start = Feature(geometry=Point((-75.343, 39.984)),</span>
+<span class="sd">    properties={&quot;marker-color&quot;: &quot;F00&quot;})</span>
+<span class="sd">    &gt;&gt;&gt; distance = 50</span>
+<span class="sd">    &gt;&gt;&gt; bearing = 90</span>
+<span class="sd">    &gt;&gt;&gt; rhumb_destination(start, distance, bearing, {&#39;units&#39;:&#39;mi&#39;,</span>
+<span class="sd">    &#39;properties&#39;: {&quot;marker-color&quot;: &quot;F00&quot;}})</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">was_negative_distance</span> <span class="o">=</span> <span class="n">distance</span> <span class="o">&lt;</span> <span class="mi">0</span>
+    <span class="n">distance_in_meters</span> <span class="o">=</span> <span class="n">convert_length</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">distance</span><span class="p">),</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="s2">&quot;m&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">was_negative_distance</span><span class="p">:</span>
+        <span class="n">distance_in_meters</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">distance_in_meters</span><span class="p">))</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">get_coord</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span>
+    <span class="n">destination_point</span> <span class="o">=</span> <span class="n">_calculate_rhumb_destination</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">distance_in_meters</span><span class="p">,</span> <span class="n">bearing</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Feature</span><span class="p">(</span>
+        <span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">destination_point</span><span class="p">),</span> <span class="n">properties</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;properties&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="_calculate_rhumb_destination"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement._calculate_rhumb_destination">[docs]</a><span class="k">def</span> <span class="nf">_calculate_rhumb_destination</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">bearing</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">radius</span><span class="p">:</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="n">avg_earth_radius_km</span>
+
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">distance</span> <span class="o">/</span> <span class="n">radius</span>
+    <span class="n">lambda1</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
+    <span class="n">phi1</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="n">bearing</span><span class="p">)</span>
+    <span class="n">delta_phi</span> <span class="o">=</span> <span class="n">delta</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="n">phi2</span> <span class="o">=</span> <span class="n">phi1</span> <span class="o">+</span> <span class="n">delta_phi</span>
+
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">phi2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">phi2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">phi2</span> <span class="o">=</span> <span class="n">pi</span> <span class="o">-</span> <span class="n">phi2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">phi2</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">pi</span> <span class="o">-</span> <span class="n">phi2</span>
+
+    <span class="n">delta_psi</span> <span class="o">=</span> <span class="n">log</span><span class="p">(</span><span class="n">tan</span><span class="p">(</span><span class="n">phi2</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span> <span class="o">/</span> <span class="n">tan</span><span class="p">(</span><span class="n">phi1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">delta_psi</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">10e-12</span><span class="p">:</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">delta_phi</span> <span class="o">/</span> <span class="n">delta_psi</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">cos</span><span class="p">(</span><span class="n">phi1</span><span class="p">)</span>
+
+    <span class="n">delta_lambda</span> <span class="o">=</span> <span class="n">delta</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">/</span> <span class="n">q</span>
+
+    <span class="n">lambda2</span> <span class="o">=</span> <span class="n">lambda1</span> <span class="o">+</span> <span class="n">delta_lambda</span>
+
+    <span class="k">return</span> <span class="p">[((</span><span class="n">lambda2</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">pi</span><span class="p">)</span> <span class="o">+</span> <span class="mi">540</span><span class="p">)</span> <span class="o">%</span> <span class="mi">360</span> <span class="o">-</span> <span class="mi">180</span><span class="p">,</span> <span class="n">phi2</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">pi</span><span class="p">]</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ------------ rhumb distance -----------#</span>
+
+
+<div class="viewcode-block" id="rhumb_distance"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.rhumb_distance">[docs]</a><span class="k">def</span> <span class="nf">rhumb_distance</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">to</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;km&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the distance along a rhumb line between two points in degrees, radians,</span>
+<span class="sd">    miles, or kilometers.</span>
+
+<span class="sd">    :param start: Start Point or Point Feature from which distance to be calculated.</span>
+<span class="sd">    :param to: End Point or Point Feature upto which distance to be calculated.</span>
+<span class="sd">    :param units: Units in which distance to be calculated, values can be &#39;deg&#39;, &#39;rad&#39;,</span>
+<span class="sd">        &#39;mi&#39;, &#39;km&#39;</span>
+<span class="sd">    :return: Distance calculated from provided start to end Point.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import rhumb_distance</span>
+<span class="sd">    &gt;&gt;&gt; from geojson import Point, Feature</span>
+<span class="sd">    &gt;&gt;&gt; start = Feature(geometry=Point((-75.343, 39.984)))</span>
+<span class="sd">    &gt;&gt;&gt; end = Feature(geometry=Point((-75.534, 39.123)))</span>
+<span class="sd">    &gt;&gt;&gt; rhumb_distance(start, end,&#39;mi&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">origin</span> <span class="o">=</span> <span class="n">get_coord</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+    <span class="n">dest</span> <span class="o">=</span> <span class="n">get_coord</span><span class="p">(</span><span class="n">to</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dest</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">180</span><span class="p">:</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mi">360</span>
+    <span class="k">elif</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">dest</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">180</span><span class="p">:</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="mi">360</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">dest</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">temp</span>
+
+    <span class="n">distance_in_meters</span> <span class="o">=</span> <span class="n">_calculate_rhumb_distance</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="n">dest</span><span class="p">)</span>
+    <span class="n">ru_distance</span> <span class="o">=</span> <span class="n">convert_length</span><span class="p">(</span><span class="n">distance_in_meters</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ru_distance</span></div>
+
+
+<div class="viewcode-block" id="_calculate_rhumb_distance"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement._calculate_rhumb_distance">[docs]</a><span class="k">def</span> <span class="nf">_calculate_rhumb_distance</span><span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="n">destination_point</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">radius</span><span class="p">:</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="n">avg_earth_radius_km</span>
+    <span class="n">phi1</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
+    <span class="n">phi2</span> <span class="o">=</span> <span class="n">destination_point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
+    <span class="n">delta_phi</span> <span class="o">=</span> <span class="n">phi2</span> <span class="o">-</span> <span class="n">phi1</span>
+    <span class="n">delta_lambda</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">destination_point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
+
+    <span class="k">if</span> <span class="n">delta_lambda</span> <span class="o">&gt;</span> <span class="n">pi</span><span class="p">:</span>
+        <span class="n">delta_lambda</span> <span class="o">-=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">pi</span>
+
+    <span class="n">delta_psi</span> <span class="o">=</span> <span class="n">log</span><span class="p">(</span><span class="n">tan</span><span class="p">(</span><span class="n">phi2</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span> <span class="o">/</span> <span class="n">tan</span><span class="p">(</span><span class="n">phi1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">delta_psi</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">10e-12</span><span class="p">:</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">delta_phi</span> <span class="o">/</span> <span class="n">delta_psi</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">cos</span><span class="p">(</span><span class="n">phi1</span><span class="p">)</span>
+
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">delta_phi</span> <span class="o">*</span> <span class="n">delta_phi</span> <span class="o">+</span> <span class="n">q</span> <span class="o">*</span> <span class="n">q</span> <span class="o">*</span> <span class="n">delta_lambda</span> <span class="o">*</span> <span class="n">delta_lambda</span><span class="p">)</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">delta</span> <span class="o">*</span> <span class="n">radius</span>
+
+    <span class="k">return</span> <span class="n">dist</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+
+<span class="c1"># ------------ square -----------#</span>
+
+
+<div class="viewcode-block" id="square"><a class="viewcode-back" href="../../turfpy.measurement.html#turfpy.measurement.square">[docs]</a><span class="k">def</span> <span class="nf">square</span><span class="p">(</span><span class="n">bbox</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a bounding box and calculates the minimum square bounding box that would contain</span>
+<span class="sd">    the input.</span>
+
+<span class="sd">    :param bbox: Bounding box extent in west, south, east, north order</span>
+<span class="sd">    :return: A square surrounding bbox</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from turfpy.measurement import square</span>
+<span class="sd">    &gt;&gt;&gt; bbox = [-20, -20, -15, 0]</span>
+<span class="sd">    &gt;&gt;&gt; square(bbox)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">west</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">south</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">east</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">north</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+    <span class="n">horizontal_distance</span> <span class="o">=</span> <span class="n">distance</span><span class="p">(</span>
+        <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])),</span> <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">((</span><span class="n">east</span><span class="p">,</span> <span class="n">south</span><span class="p">)))</span>
+    <span class="p">)</span>
+    <span class="n">vertical_distance</span> <span class="o">=</span> <span class="n">distance</span><span class="p">(</span>
+        <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])),</span> <span class="n">Feature</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">Point</span><span class="p">((</span><span class="n">west</span><span class="p">,</span> <span class="n">north</span><span class="p">)))</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">horizontal_distance</span> <span class="o">&gt;=</span> <span class="n">vertical_distance</span><span class="p">:</span>
+        <span class="n">vertical_midpoint</span> <span class="o">=</span> <span class="p">(</span><span class="n">south</span> <span class="o">+</span> <span class="n">north</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">west</span><span class="p">,</span>
+            <span class="n">vertical_midpoint</span> <span class="o">-</span> <span class="p">((</span><span class="n">east</span> <span class="o">-</span> <span class="n">west</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">east</span><span class="p">,</span>
+            <span class="n">vertical_midpoint</span> <span class="o">+</span> <span class="p">((</span><span class="n">east</span> <span class="o">-</span> <span class="n">west</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">horizontal_midpoint</span> <span class="o">=</span> <span class="p">(</span><span class="n">west</span> <span class="o">+</span> <span class="n">east</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">horizontal_midpoint</span> <span class="o">-</span> <span class="p">((</span><span class="n">north</span> <span class="o">-</span> <span class="n">south</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">south</span><span class="p">,</span>
+            <span class="n">horizontal_midpoint</span> <span class="o">+</span> <span class="p">((</span><span class="n">north</span> <span class="o">-</span> <span class="n">south</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">north</span><span class="p">,</span>
+        <span class="p">]</span></div>
+
+
+<span class="c1"># -------------------------------#</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Author
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
