@@ -3,7 +3,7 @@ Test module for transformations.
 """
 from geojson import Feature, LineString, Point
 
-from turfpy.transformation import bbox_clip, bezie_spline, circle, intersect
+from turfpy.transformation import bbox_clip, bezie_spline, circle, intersect, union
 
 
 def test_circle():
@@ -113,3 +113,56 @@ def test_bezie_spline():
     bf = bf["geometry"]
     assert bf.type == "LineString"
     assert len(bf.coordinates) == 500
+
+
+def test_union():
+    p1 = Feature(
+        geometry={
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-82.574787, 35.594087],
+                    [-82.574787, 35.615581],
+                    [-82.545261, 35.615581],
+                    [-82.545261, 35.594087],
+                    [-82.574787, 35.594087],
+                ]
+            ],
+        }
+    )
+
+    p2 = Feature(
+        geometry={
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-82.560024, 35.585153],
+                    [-82.560024, 35.602602],
+                    [-82.52964, 35.602602],
+                    [-82.52964, 35.585153],
+                    [-82.560024, 35.585153],
+                ]
+            ],
+        }
+    )
+    result = union([p1, p2])
+    assert dict(result) == {
+        "type": "Feature",
+        "geometry": {
+            "coordinates": [
+                [
+                    [-82.560024, 35.585153],
+                    [-82.560024, 35.594087],
+                    [-82.574787, 35.594087],
+                    [-82.574787, 35.615581],
+                    [-82.545261, 35.615581],
+                    [-82.545261, 35.602602],
+                    [-82.52964, 35.602602],
+                    [-82.52964, 35.585153],
+                    [-82.560024, 35.585153],
+                ]
+            ],
+            "type": "Polygon",
+        },
+        "properties": {},
+    }

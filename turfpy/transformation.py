@@ -5,9 +5,11 @@ This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
 from math import floor
+from typing import List
 
 from geojson import Feature, LineString, Polygon
 from shapely.geometry import mapping, shape
+from shapely.ops import cascaded_union
 
 from turfpy.helper import get_geom
 from turfpy.measurement import bbox_polygon, destination
@@ -163,3 +165,28 @@ def bezie_spline(line: Feature, resolution=10000, sharpness=0.85):
         i = i + 10
 
     return Feature(geometry=LineString(coords))
+
+
+def union(features: List[Feature]) -> Feature:
+    """
+    Given list of two or more `Polygons` return union of those.
+
+    :param features: A list of GeoJSON features(Polygons).
+    :return: union GeoJSON Feature.
+    """
+
+    shapes = []
+    for f in features:
+        if f.geometry.type != "Polygon":
+            raise ValueError("All the features in the list must be Polygon")
+        poly = get_geom(f)
+        s = shape(poly)
+        shapes.append(s)
+
+    result = cascaded_union(shapes)
+    result = mapping(result)
+
+    if not result["coordinates"]:
+        return None
+
+    return Feature(geometry=result)
