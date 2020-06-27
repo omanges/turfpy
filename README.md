@@ -300,7 +300,8 @@ feature = Feature(geometry=point)
 point_on_feature(feature)
 ```
 
-* Point In Polygon : Takes two Point and finds the geographic bearing between them.
+* Point In Polygon : Takes a Point or a Point Feature and Polygon or Polygon Feature as input and returns 
+        True if Point is in given Feature.
 
 | Argument  | Type | Description |
 | ------- | ------ | ----------- |
