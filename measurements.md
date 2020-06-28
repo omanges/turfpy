@@ -1,4 +1,4 @@
-## Measurement Example :
+## Measurement Examples :
   * Bearing : Takes two Point and finds the geographic bearing between them.
   
 | Argument  | Type | Description |
