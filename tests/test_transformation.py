@@ -1,9 +1,9 @@
 """
 Test module for transformations.
 """
-from geojson import Feature, LineString, Point
+from geojson import Feature, LineString, Point, FeatureCollection
 
-from turfpy.transformation import bbox_clip, bezie_spline, circle, intersect, union
+from turfpy.transformation import bbox_clip, bezie_spline, circle, intersect, union, concave, convex
 
 
 def test_circle():
@@ -166,3 +166,31 @@ def test_union():
         },
         "properties": {},
     }
+
+
+def test_concave():
+    f1 = Feature(geometry=Point((-63.601226, 44.642643)))
+    f2 = Feature(geometry=Point((-63.591442, 44.651436)))
+    f3 = Feature(geometry=Point((-63.580799, 44.648749)))
+    f4 = Feature(geometry=Point((-63.573589, 44.641788)))
+    f5 = Feature(geometry=Point((-63.587665, 44.64533)))
+    f6 = Feature(geometry=Point((-63.595218, 44.64765)))
+    fc = [f1, f2, f3, f4, f5, f6]
+    concave_hull = concave(FeatureCollection(fc), alpha=100)
+
+    assert concave_hull['type'] == 'Feature'
+    assert len(concave_hull['geometry']['coordinates'][0]) == 7
+
+
+def test_convex():
+    f1 = Feature(geometry=Point((10.195312, 43.755225)))
+    f2 = Feature(geometry=Point((10.404052, 43.8424511)))
+    f3 = Feature(geometry=Point((10.579833, 43.659924)))
+    f4 = Feature(geometry=Point((10.360107, 43.516688)))
+    f5 = Feature(geometry=Point((10.14038, 43.588348)))
+    f6 = Feature(geometry=Point((10.195312, 43.755225)))
+    fc = [f1, f2, f3, f4, f5, f6]
+    convex_hull = convex(FeatureCollection(fc))
+
+    assert convex_hull['type'] == 'Feature'
+    assert len(convex_hull['geometry']['coordinates'][0]) == 6

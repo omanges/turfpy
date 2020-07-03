@@ -1,3 +1,5 @@
 # Core
 geojson
 shapely
+scipy
+numpy

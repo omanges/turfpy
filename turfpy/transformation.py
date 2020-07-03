@@ -4,12 +4,16 @@ understand the patterns and relationships of geographic features.
 This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
+import math
 from math import floor
 from typing import List
 
-from geojson import Feature, LineString, Polygon
-from shapely.geometry import mapping, shape
-from shapely.ops import cascaded_union
+import numpy as np
+import shapely.geometry as geometry
+from geojson import Feature, FeatureCollection, LineString, Polygon
+from scipy.spatial import Delaunay
+from shapely.geometry import Point, mapping, shape
+from shapely.ops import cascaded_union, polygonize
 
 from turfpy.helper import get_geom
 from turfpy.measurement import bbox_polygon, destination
@@ -18,7 +22,7 @@ from .dev_lib.spline import Spline
 
 
 def circle(
-    center: Feature, radius: int, steps: int = 64, units: str = "km", **kwargs
+        center: Feature, radius: int, steps: int = 64, units: str = "km", **kwargs
 ) -> Polygon:
     """
     Takes a Point and calculates the circle polygon given a radius in degrees,
@@ -190,3 +194,154 @@ def union(features: List[Feature]) -> Feature:
         return None
 
     return Feature(geometry=result)
+
+
+def _alpha_shape(points, alpha):
+    """
+    Compute the alpha shape (concave hull) of a set of points.
+
+    @param points: Iterable container of points.
+    @param alpha: alpha value to influence the gooeyness of the border. Smaller
+                  numbers don't fall inward as much as larger numbers. Too large,
+                  and you lose everything!
+    """
+    if len(points) < 4:
+        # When you have a triangle, there is no sense in computing an alpha
+        # shape.
+        return geometry.MultiPoint(list(points)).convex_hull
+
+    def add_edge(edges, edge_points, coords, i, j):
+        """Add a line between the i-th and j-th points, if not in the list already"""
+        if (i, j) in edges or (j, i) in edges:
+            # already added
+            return
+        edges.add((i, j))
+        edge_points.append(coords[[i, j]])
+
+    coords = np.array([point.coords[0] for point in points])
+
+    tri = Delaunay(coords)
+    edges = set()
+    edge_points = []
+    # loop over triangles:
+    # ia, ib, ic = indices of corner points of the triangle
+    for ia, ib, ic in tri.vertices:
+        pa = coords[ia]
+        pb = coords[ib]
+        pc = coords[ic]
+
+        # Lengths of sides of triangle
+        a = math.sqrt((pa[0] - pb[0]) ** 2 + (pa[1] - pb[1]) ** 2)
+        b = math.sqrt((pb[0] - pc[0]) ** 2 + (pb[1] - pc[1]) ** 2)
+        c = math.sqrt((pc[0] - pa[0]) ** 2 + (pc[1] - pa[1]) ** 2)
+
+        # Semiperimeter of triangle
+        s = (a + b + c) / 2.0
+
+        # Area of triangle by Heron's formula
+        area = math.sqrt(s * (s - a) * (s - b) * (s - c))
+        circum_r = a * b * c / (4.0 * area)
+
+        # Here's the radius filter.
+        # print circum_r
+        if circum_r < 1.0 / alpha:
+            add_edge(edges, edge_points, coords, ia, ib)
+            add_edge(edges, edge_points, coords, ib, ic)
+            add_edge(edges, edge_points, coords, ic, ia)
+
+    m = geometry.MultiLineString(edge_points)
+    triangles = list(polygonize(m))
+    return cascaded_union(triangles), edge_points
+
+
+def get_points(features):
+    points = []
+    if 'type' not in features.keys():
+        raise Exception("Invalid Feature")
+
+    if features['type'] == 'Feature':
+        get_ext_points(geometry.shape(features['geometry']), points)
+    else:
+        if 'features' not in features.keys():
+            raise Exception("Invalid FeatureCollection")
+
+        for feature in features['features']:
+            get_ext_points(geometry.shape(feature['geometry']), points)
+    return points
+
+
+def get_ext_points(geom, points):
+    if geom.type == 'Point':
+        for p in geom.coords:
+            points.append(Point(p))
+    elif geom.type == 'MultiPoint':
+        for p in geom.geoms:
+            points.append(p)
+    elif geom.type == 'LineString':
+        for p in geom.coords:
+            points.append(Point(p))
+    elif geom.type == 'MultiLineString':
+        for g in geom.geoms:
+            for p in g.coords:
+                points.append(Point(p))
+    elif geom.type == 'Polygon':
+        for p in geom.exterior.coords:
+            points.append(Point(p))
+    elif geom.type == 'MultiPolygon':
+        for g in geom.geoms:
+            for p in g.exterior.coords:
+                points.append(Point(p))
+    else:
+        raise Exception("Invalid Geometry")
+
+
+def concave(features: FeatureCollection, alpha=2):
+    """
+    Generate concave hull for the given feature or Feature Collection
+    :param features: It can be a feature or Feature Collection
+    :param alpha: Alpha determines the shape of concave hull,
+            greater values will make shape more tighten
+    :return: Feature of concave hull polygon
+
+    Example:
+    >>> from turfpy.transformation import concave
+    >>> from geojson import FeatureCollection, Feature, Point
+    >>> f1 = Feature(geometry=Point((-63.601226, 44.642643)))
+    >>> f2 = Feature(geometry=Point((-63.591442, 44.651436)))
+    >>> f3 = Feature(geometry=Point((-63.580799, 44.648749)))
+    >>> f4 = Feature(geometry=Point((-63.573589, 44.641788)))
+    >>> f5 = Feature(geometry=Point((-63.587665, 44.64533)))
+    >>> f6 = Feature(geometry=Point((-63.595218, 44.64765)))
+    >>> fc = [f1, f2, f3, f4, f5, f6]
+    >>> concave(FeatureCollection(fc), alpha=100)
+    """
+    points = get_points(features)
+
+    concave_hull, edges = _alpha_shape(points, alpha)
+
+    return Feature(geometry=mapping(concave_hull))
+
+
+def convex(features: FeatureCollection):
+    """
+    Generate convex hull for the given feature or Feature Collection
+    :param features: It can be a feature or Feature Collection
+    :return: Feature of convex hull polygon
+
+    Example:
+    >>> from turfpy.transformation import convex
+    >>> from geojson import FeatureCollection, Feature, Point
+    >>> f1 = Feature(geometry=Point((10.195312, 43.755225)))
+    >>> f2 = Feature(geometry=Point((10.404052, 43.8424511)))
+    >>> f3 = Feature(geometry=Point((10.579833, 43.659924)))
+    >>> f4 = Feature(geometry=Point((10.360107, 43.516688)))
+    >>> f5 = Feature(geometry=Point((10.14038, 43.588348)))
+    >>> f6 = Feature(geometry=Point((10.195312, 43.755225)))
+    >>> fc = [f1, f2, f3, f4, f5, f6]
+    >>> convex(FeatureCollection(fc))
+    """
+    points = get_points(features)
+
+    point_collection = geometry.MultiPoint(list(points))
+
+    return Feature(geometry=mapping(point_collection.convex_hull))
