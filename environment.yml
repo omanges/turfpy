@@ -1,0 +1,9 @@
+name: turfpy
+channels:
+  - conda-forge
+dependencies:
+  - ipyleaflet
+  - pip
+  - pip:
+    - "-r requirements.txt"
+    - "-r requirements_examples.txt"
