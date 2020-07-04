@@ -73,7 +73,7 @@ def bbox_clip(geojson: Feature, bbox: list):
     """
     bb_polygon = bbox_polygon(bbox)
 
-    bb_clip = intersect(geojson, bb_polygon)
+    bb_clip = intersect([geojson, bb_polygon])
 
     if not bb_clip:
         return bb_clip

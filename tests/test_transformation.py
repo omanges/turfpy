@@ -43,7 +43,7 @@ def test_bbox_clip():
     assert clip.type == "Polygon"
     assert len(clip.coordinates[0]) == 6
     assert clip.coordinates == [
-        [[10.0, 6.0], [8.0, 4.0], [2.0, 2.0], [3.0, 7.0], [10.0, 7.777778], [10.0, 6.0]]
+        [[10.0, 7.777778], [10.0, 6.0], [8.0, 4.0], [2.0, 2.0], [3.0, 7.0], [10.0, 7.777778]]
     ]
 
 
