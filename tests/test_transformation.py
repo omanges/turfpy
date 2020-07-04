@@ -1,9 +1,10 @@
 """
 Test module for transformations.
 """
-from geojson import Feature, LineString, Point, FeatureCollection
+from geojson import Feature, FeatureCollection, LineString, Point
 
-from turfpy.transformation import bbox_clip, bezie_spline, circle, intersect, union, concave, convex
+from turfpy.transformation import (bbox_clip, bezie_spline, circle, concave, convex,
+                                   intersect, union)
 
 
 def test_circle():
@@ -78,19 +79,19 @@ def test_intersection():
             "type": "Polygon",
         }
     )
-    inter = intersect(f, b)
+    inter = intersect([f, b])
     inter = inter["geometry"]
     assert inter.type == "Polygon"
     assert len(inter.coordinates[0]) == 7
     assert inter.coordinates == [
         [
-            [-122.584762, 45.545509],
-            [-122.584762, 45.48565],
             [-122.689027, 45.48565],
             [-122.669906, 45.507309],
             [-122.720031, 45.526554],
             [-122.64038, 45.553967],
             [-122.584762, 45.545509],
+            [-122.584762, 45.48565],
+            [-122.689027, 45.48565],
         ]
     ]
 
@@ -178,8 +179,8 @@ def test_concave():
     fc = [f1, f2, f3, f4, f5, f6]
     concave_hull = concave(FeatureCollection(fc), alpha=100)
 
-    assert concave_hull['type'] == 'Feature'
-    assert len(concave_hull['geometry']['coordinates'][0]) == 7
+    assert concave_hull["type"] == "Feature"
+    assert len(concave_hull["geometry"]["coordinates"][0]) == 7
 
 
 def test_convex():
@@ -192,5 +193,5 @@ def test_convex():
     fc = [f1, f2, f3, f4, f5, f6]
     convex_hull = convex(FeatureCollection(fc))
 
-    assert convex_hull['type'] == 'Feature'
-    assert len(convex_hull['geometry']['coordinates'][0]) == 6
+    assert convex_hull["type"] == "Feature"
+    assert len(convex_hull["geometry"]["coordinates"][0]) == 6

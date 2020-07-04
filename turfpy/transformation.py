@@ -22,7 +22,7 @@ from .dev_lib.spline import Spline
 
 
 def circle(
-        center: Feature, radius: int, steps: int = 64, units: str = "km", **kwargs
+    center: Feature, radius: int, steps: int = 64, units: str = "km", **kwargs
 ) -> Polygon:
     """
     Takes a Point and calculates the circle polygon given a radius in degrees,
@@ -84,11 +84,10 @@ def bbox_clip(geojson: Feature, bbox: list):
     return bb_clip
 
 
-def intersect(geojson_1: Feature, geojson_2: Feature):
+def intersect(features) -> Feature:
     """
     Takes two polygons and finds their intersection
-    :param geojson_1: Geojson data
-    :param geojson_2: Geojson data
+    :param features: List of features of Feature Collection
     :return: Intersection Geojson Feature
 
     Example:
@@ -105,22 +104,29 @@ def intersect(geojson_1: Feature, geojson_2: Feature):
     >>> [-122.723464, 45.446643], [-122.532577, 45.408574],
     >>> [-122.487258, 45.477466], [-122.520217, 45.535693]
     >>> ]], "type": "Polygon"})
-    >>> inter = intersect(f, b)
+    >>> inter = intersect([f, b])
     """
+    if isinstance(features, list):
+        shapes = []
+        for f in features:
+            poly = get_geom(f)
+            s = shape(poly)
+            shapes.append(s)
 
-    geometry_1 = get_geom(geojson_1)
-    geometry_2 = get_geom(geojson_2)
+    else:
+        if "features" not in features.keys():
+            raise Exception("Invalid FeatureCollection")
+        shapes = []
+        for f in features["features"]:
+            poly = get_geom(f)
+            s = shape(poly)
+            shapes.append(s)
 
-    shape_1 = shape(geometry_1)
-    shape_2 = shape(geometry_2)
+    intersection = shapes[0]
 
-    if not shape_1.is_valid:
-        shape_1 = shape_1.buffer(0)
+    for shape_value in shapes:
+        intersection = shape_value.intersection(intersection)
 
-    if not shape_2.is_valid:
-        shape_2 = shape_2.buffer(0)
-
-    intersection = shape_1.intersection(shape_2)
     intersection = mapping(intersection)
 
     if len(intersection["coordinates"]) == 0:
@@ -256,38 +262,38 @@ def _alpha_shape(points, alpha):
 
 def get_points(features):
     points = []
-    if 'type' not in features.keys():
+    if "type" not in features.keys():
         raise Exception("Invalid Feature")
 
-    if features['type'] == 'Feature':
-        get_ext_points(geometry.shape(features['geometry']), points)
+    if features["type"] == "Feature":
+        get_ext_points(geometry.shape(features["geometry"]), points)
     else:
-        if 'features' not in features.keys():
+        if "features" not in features.keys():
             raise Exception("Invalid FeatureCollection")
 
-        for feature in features['features']:
-            get_ext_points(geometry.shape(feature['geometry']), points)
+        for feature in features["features"]:
+            get_ext_points(geometry.shape(feature["geometry"]), points)
     return points
 
 
 def get_ext_points(geom, points):
-    if geom.type == 'Point':
+    if geom.type == "Point":
         for p in geom.coords:
             points.append(Point(p))
-    elif geom.type == 'MultiPoint':
+    elif geom.type == "MultiPoint":
         for p in geom.geoms:
             points.append(p)
-    elif geom.type == 'LineString':
+    elif geom.type == "LineString":
         for p in geom.coords:
             points.append(Point(p))
-    elif geom.type == 'MultiLineString':
+    elif geom.type == "MultiLineString":
         for g in geom.geoms:
             for p in g.coords:
                 points.append(Point(p))
-    elif geom.type == 'Polygon':
+    elif geom.type == "Polygon":
         for p in geom.exterior.coords:
             points.append(Point(p))
-    elif geom.type == 'MultiPolygon':
+    elif geom.type == "MultiPolygon":
         for g in geom.geoms:
             for p in g.exterior.coords:
                 points.append(Point(p))
