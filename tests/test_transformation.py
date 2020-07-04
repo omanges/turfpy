@@ -43,7 +43,14 @@ def test_bbox_clip():
     assert clip.type == "Polygon"
     assert len(clip.coordinates[0]) == 6
     assert clip.coordinates == [
-        [[10.0, 7.777778], [10.0, 6.0], [8.0, 4.0], [2.0, 2.0], [3.0, 7.0], [10.0, 7.777778]]
+        [
+            [10.0, 7.777778],
+            [10.0, 6.0],
+            [8.0, 4.0],
+            [2.0, 2.0],
+            [3.0, 7.0],
+            [10.0, 7.777778],
+        ]
     ]
 
 
@@ -117,7 +124,7 @@ def test_bezie_spline():
 
 
 def test_union():
-    p1 = Feature(
+    poly1 = Feature(
         geometry={
             "type": "Polygon",
             "coordinates": [
@@ -132,7 +139,7 @@ def test_union():
         }
     )
 
-    p2 = Feature(
+    poly2 = Feature(
         geometry={
             "type": "Polygon",
             "coordinates": [
@@ -146,7 +153,7 @@ def test_union():
             ],
         }
     )
-    result = union([p1, p2])
+    result = union([poly1, poly2])
     assert dict(result) == {
         "type": "Feature",
         "geometry": {
@@ -167,6 +174,10 @@ def test_union():
         },
         "properties": {},
     }
+
+    p1 = Feature(geometry={"type": "Point", "coordinates": [-82.574787, 35.594087]})
+    result2 = union([poly1, p1])
+    assert result2 == poly1
 
 
 def test_concave():

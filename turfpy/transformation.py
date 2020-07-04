@@ -6,7 +6,7 @@ link: http://turfjs.org/
 """
 import math
 from math import floor
-from typing import List
+from typing import List, Union
 
 import numpy as np
 import shapely.geometry as geometry
@@ -177,27 +177,40 @@ def bezie_spline(line: Feature, resolution=10000, sharpness=0.85):
     return Feature(geometry=LineString(coords))
 
 
-def union(features: List[Feature]) -> Feature:
+def union(
+    features: Union[List[Feature], FeatureCollection]
+) -> Union[Feature, FeatureCollection]:
     """
-    Given list of two or more `Polygons` return union of those.
+    Given list of features or ``FeatureCollectio`` return union of those.
 
-    :param features: A list of GeoJSON features(Polygons).
-    :return: union GeoJSON Feature.
+    :param features: A list of GeoJSON features or FeatureCollection.
+    :return: A GeoJSON Feature or FeatureCollection.
     """
 
     shapes = []
-    for f in features:
-        if f.geometry.type != "Polygon":
-            raise ValueError("All the features in the list must be Polygon")
-        poly = get_geom(f)
-        s = shape(poly)
-        shapes.append(s)
+    if isinstance(features, list):
+        for f in features:
+            if f.type != "Feature":
+                raise Exception("Not a valid feature")
+            geom = get_geom(f)
+            s = shape(geom)
+            shapes.append(s)
+    else:
+        if "features" not in features.keys():
+            raise Exception("Invalid FeatureCollection")
+        for f in features["features"]:
+            geom = get_geom(f)
+            s = shape(geom)
+            shapes.append(s)
 
     result = cascaded_union(shapes)
     result = mapping(result)
 
-    if not result["coordinates"]:
-        return None
+    if result["type"] == "GeometryCollection":
+        features = []
+        for geom in result["geometries"]:
+            features.append(Feature(geometry=geom))
+        return FeatureCollection(features)
 
     return Feature(geometry=result)
 
