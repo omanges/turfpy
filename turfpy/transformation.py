@@ -9,9 +9,9 @@ from math import floor
 from typing import List, Union
 
 import numpy as np
-import shapely.geometry as geometry
 from geojson import Feature, FeatureCollection, LineString, Polygon
 from scipy.spatial import Delaunay
+from shapely import geometry as geometry
 from shapely.geometry import Point, mapping, shape
 from shapely.ops import cascaded_union, polygonize
 
@@ -219,10 +219,10 @@ def _alpha_shape(points, alpha):
     """
     Compute the alpha shape (concave hull) of a set of points.
 
-    @param points: Iterable container of points.
-    @param alpha: alpha value to influence the gooeyness of the border. Smaller
-                  numbers don't fall inward as much as larger numbers. Too large,
-                  and you lose everything!
+    :param points: Iterable container of points.
+    :param alpha: alpha value to influence the gooeyness of the border. Smaller
+        numbers don't fall inward as much as larger numbers. Too large,
+        and you lose everything!
     """
     if len(points) < 4:
         # When you have a triangle, there is no sense in computing an alpha
@@ -315,11 +315,11 @@ def get_ext_points(geom, points):
 
 
 def concave(features: FeatureCollection, alpha=2):
-    """
-    Generate concave hull for the given feature or Feature Collection
+    """Generate concave hull for the given feature or Feature Collection.
+
     :param features: It can be a feature or Feature Collection
     :param alpha: Alpha determines the shape of concave hull,
-            greater values will make shape more tighten
+        greater values will make shape more tighten
     :return: Feature of concave hull polygon
 
     Example:
@@ -342,8 +342,8 @@ def concave(features: FeatureCollection, alpha=2):
 
 
 def convex(features: FeatureCollection):
-    """
-    Generate convex hull for the given feature or Feature Collection
+    """Generate convex hull for the given feature or Feature Collection
+
     :param features: It can be a feature or Feature Collection
     :return: Feature of convex hull polygon
 

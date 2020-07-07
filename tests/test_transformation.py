@@ -3,8 +3,15 @@ Test module for transformations.
 """
 from geojson import Feature, FeatureCollection, LineString, Point
 
-from turfpy.transformation import (bbox_clip, bezie_spline, circle, concave, convex,
-                                   intersect, union)
+from turfpy.transformation import (
+    bbox_clip,
+    bezie_spline,
+    circle,
+    concave,
+    convex,
+    intersect,
+    union,
+)
 
 
 def test_circle():
