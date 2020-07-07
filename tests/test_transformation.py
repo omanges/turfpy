@@ -3,8 +3,15 @@ Test module for transformations.
 """
 from geojson import Feature, FeatureCollection, LineString, Point
 
-from turfpy.transformation import (bbox_clip, bezie_spline, circle, concave, convex,
-                                   intersect, union)
+from turfpy.transformation import (
+    bbox_clip,
+    bezie_spline,
+    circle,
+    concave,
+    convex,
+    intersect,
+    union,
+)
 
 
 def test_circle():
@@ -43,7 +50,14 @@ def test_bbox_clip():
     assert clip.type == "Polygon"
     assert len(clip.coordinates[0]) == 6
     assert clip.coordinates == [
-        [[10.0, 7.777778], [10.0, 6.0], [8.0, 4.0], [2.0, 2.0], [3.0, 7.0], [10.0, 7.777778]]
+        [
+            [10.0, 7.777778],
+            [10.0, 6.0],
+            [8.0, 4.0],
+            [2.0, 2.0],
+            [3.0, 7.0],
+            [10.0, 7.777778],
+        ]
     ]
 
 

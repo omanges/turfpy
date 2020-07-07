@@ -25,13 +25,15 @@ clean-test: ## remove test and coverage artifacts
 
 black:
 	black -l 90 turfpy tests
+	isort --atomic .
 
 typing:
 	pytest -v -s --mypy turfpy
 
 lint:
-	isort -rc --atomic .
+	isort --check --diff turfpy tests
 	flake8 -v --statistics --count turfpy
+	black -l 90 --diff --check turfpy tests
 
 test:
 	pytest -v -s --cov=turfpy tests
