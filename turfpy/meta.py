@@ -122,7 +122,7 @@ def calculate_area(geom) -> float:
     elif geom["type"] == "MultiPolygon":
         for coords in geom["coordinates"]:
             total += polygon_area(coords)
-            return total
+        return total
     elif (
         geom["type"] == "Point"
         or geom["type"] == "MultiPoint"
@@ -302,6 +302,7 @@ def coord_each(geojson, callback, excludeWrapCoord=None):
                             return False
                 else:
                     raise Exception("Unknown Geometry Type")
+    return True
 
 
 def segment_reduce(geojson, callback, initial_value=None):
@@ -389,6 +390,8 @@ def segment_each(geojson, callback):
         if not coord_each(feature, callback_coord_each):
             return False
 
+        return True
+
     flatten_each(geojson, callback_flatten_each)
 
 
@@ -424,6 +427,7 @@ def flatten_each(geojson, callback):
                 multi_feature_index,
             ):
                 return False
+
         return True
 
     geom_each(geojson, callback_geom_each)
