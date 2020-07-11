@@ -24,8 +24,8 @@ You can install the Turfpy from [PyPI](https://pypi.org/project/turfpy/):
 
 It supports various functionalities:
 
-Measurement functions: [measurements](measurements.md)
+Measurement functions: [measurements](https://github.com/omanges/turfpy/blob/master/measurements.md)
 
-Transformation functions: [transformation](transformation.md)
+Transformation functions: [transformation](https://github.com/omanges/turfpy/blob/master/transformation.md)
 
 
