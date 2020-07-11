@@ -193,7 +193,7 @@ def bezie_spline(line: Feature, resolution=10000, sharpness=0.85):
 
 
 def merge_dict(dicts: list):
-    super_dict = {}
+    super_dict: dict = {}
     for d in dicts:
         for k, v in d.items():
             if k not in super_dict.keys():
