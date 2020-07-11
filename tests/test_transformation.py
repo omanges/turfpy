@@ -1,7 +1,7 @@
 """
 Test module for transformations.
 """
-from geojson import Feature, FeatureCollection, LineString, Point
+from geojson import Feature, FeatureCollection, LineString, Point, Polygon
 
 from turfpy.transformation import (
     bbox_clip,
@@ -11,6 +11,7 @@ from turfpy.transformation import (
     convex,
     intersect,
     union,
+    dissolve,
 )
 
 
@@ -213,3 +214,27 @@ def test_convex():
 
     assert convex_hull["type"] == "Feature"
     assert len(convex_hull["geometry"]["coordinates"][0]) == 6
+
+
+def test_dissolve():
+    f1 = Feature(
+        geometry=Polygon([[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]),
+        properties={"combine": "yes", "fill": "#00f"},
+    )
+
+    f2 = Feature(
+        geometry=Polygon([[[0, -1], [0, 0], [1, 0], [1, -1], [0, -1]]]),
+        properties={"combine": "yes"},
+    )
+
+    f3 = Feature(
+        geometry=Polygon([[[1, -1], [1, 0], [2, 0], [2, -1], [1, -1]]]),
+        properties={"combine": "no"},
+    )
+
+    dissolve_result = dissolve([f1, f2, f3], property_name="combine")
+
+    assert dissolve_result["type"] == "FeatureCollection"
+    assert len(dissolve_result["features"]) == 2
+    assert dissolve_result[0]["properties"] == {"combine": "yes", "fill": "#00f"}
+    assert dissolve_result[1]["properties"] == {"combine": "no"}

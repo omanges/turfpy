@@ -7,6 +7,7 @@ link: http://turfjs.org/
 import math
 from math import floor
 from typing import List, Union
+import itertools
 
 import numpy as np
 from geojson import Feature, FeatureCollection, LineString, Polygon
@@ -84,9 +85,9 @@ def bbox_clip(geojson: Feature, bbox: list):
     return bb_clip
 
 
-def intersect(features) -> Feature:
+def intersect(features: Union[List[Feature], FeatureCollection]) -> Feature:
     """
-    Takes two polygons and finds their intersection
+    Takes polygons and finds their intersection
     :param features: List of features of Feature Collection
     :return: Intersection Geojson Feature
 
@@ -106,6 +107,8 @@ def intersect(features) -> Feature:
     >>> ]], "type": "Polygon"})
     >>> inter = intersect([f, b])
     """
+    properties_list = []
+
     if isinstance(features, list):
         shapes = []
         for f in features:
@@ -113,14 +116,24 @@ def intersect(features) -> Feature:
             s = shape(poly)
             shapes.append(s)
 
+            if "properties" in f.keys():
+                properties_list.append(f["properties"])
+
     else:
         if "features" not in features.keys():
             raise Exception("Invalid FeatureCollection")
+
+        if "properties" in features.keys():
+            properties_list.append(features["properties"])
+
         shapes = []
         for f in features["features"]:
             poly = get_geom(f)
             s = shape(poly)
             shapes.append(s)
+
+            if "properties" in f.keys():
+                properties_list.append(f["properties"])
 
     intersection = shapes[0]
 
@@ -132,7 +145,9 @@ def intersect(features) -> Feature:
     if len(intersection["coordinates"]) == 0:
         return None
 
-    intersection_feature = Feature(geometry=intersection)
+    properties = merge_dict(properties_list)
+
+    intersection_feature = Feature(geometry=intersection, properties=properties)
 
     return intersection_feature
 
@@ -177,6 +192,22 @@ def bezie_spline(line: Feature, resolution=10000, sharpness=0.85):
     return Feature(geometry=LineString(coords))
 
 
+def merge_dict(dicts: list):
+    super_dict = {}
+    for d in dicts:
+        for k, v in d.items():
+            if k not in super_dict.keys():
+                super_dict[k] = v
+            else:
+                if isinstance(super_dict[k], list):
+                    if v not in super_dict[k]:
+                        super_dict[k].append(v)
+                else:
+                    if super_dict[k] != v:
+                        super_dict[k] = [super_dict[k], v]
+    return super_dict
+
+
 def union(
     features: Union[List[Feature], FeatureCollection]
 ) -> Union[Feature, FeatureCollection]:
@@ -188,6 +219,7 @@ def union(
     """
 
     shapes = []
+    properties_list = []
     if isinstance(features, list):
         for f in features:
             if f.type != "Feature":
@@ -195,24 +227,34 @@ def union(
             geom = get_geom(f)
             s = shape(geom)
             shapes.append(s)
+
+            if "properties" in f.keys():
+                properties_list.append(f["properties"])
     else:
         if "features" not in features.keys():
             raise Exception("Invalid FeatureCollection")
+        if "properties" in features.keys():
+            properties_list.append(features["properties"])
+
         for f in features["features"]:
             geom = get_geom(f)
             s = shape(geom)
             shapes.append(s)
 
+            if "properties" in f.keys():
+                properties_list.append(f["properties"])
+
     result = cascaded_union(shapes)
     result = mapping(result)
+    properties = merge_dict(properties_list)
 
     if result["type"] == "GeometryCollection":
         features = []
         for geom in result["geometries"]:
             features.append(Feature(geometry=geom))
-        return FeatureCollection(features)
+        return FeatureCollection(features, properties=properties)
 
-    return Feature(geometry=result)
+    return Feature(geometry=result, properties=properties)
 
 
 def _alpha_shape(points, alpha):
@@ -364,3 +406,35 @@ def convex(features: FeatureCollection):
     point_collection = geometry.MultiPoint(list(points))
 
     return Feature(geometry=mapping(point_collection.convex_hull))
+
+
+def dissolve(
+    features: Union[List[Feature], FeatureCollection], property_name: str = None
+) -> Union[Feature, FeatureCollection]:
+    """
+    Take FeatureCollection or list of features to dissolve based on
+    property_name provided.
+    :param features: A list of GeoJSON features or FeatureCollection.
+    :param property_name: Name of property based on which to dissolve.
+    :return: A GeoJSON Feature or FeatureCollection.
+    """
+    if isinstance(features, list):
+        features = FeatureCollection(features)
+
+    if "features" not in features.keys():
+        raise Exception("Invalid FeatureCollection")
+    dissolve_feature_list = []
+    if property_name:
+        for k, g in itertools.groupby(
+            features["features"], key=lambda x: x["properties"].get(property_name)
+        ):
+            result = union(list(g))
+            if result["type"] == "FeatureCollection":
+                for f in result["features"]:
+                    dissolve_feature_list.append(f)
+            else:
+                dissolve_feature_list.append(result)
+    else:
+        return union(features)
+
+    return FeatureCollection(dissolve_feature_list)
