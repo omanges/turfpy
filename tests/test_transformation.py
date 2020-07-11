@@ -12,6 +12,7 @@ from turfpy.transformation import (
     intersect,
     union,
     dissolve,
+    difference,
 )
 
 
@@ -238,3 +239,27 @@ def test_dissolve():
     assert len(dissolve_result["features"]) == 2
     assert dissolve_result[0]["properties"] == {"combine": "yes", "fill": "#00f"}
     assert dissolve_result[1]["properties"] == {"combine": "no"}
+
+
+def test_difference():
+    f1 = Feature(
+        geometry=Polygon([[[128, -26], [141, -26], [141, -21], [128, -21], [128, -26]]]),
+        properties={"combine": "yes", "fill": "#00f"},
+    )
+
+    f2 = Feature(
+        geometry=Polygon([[[126, -28], [140, -28], [140, -20], [126, -20], [126, -28]]]),
+        properties={"combine": "yes"},
+    )
+
+    difference_result = difference(f1, f2)
+
+    assert difference_result["type"] == "Feature"
+    assert len(difference_result["geometry"]["coordinates"][0]) == 5
+    assert difference_result["geometry"]["coordinates"][0] == [
+        [140.0, -21.0],
+        [141.0, -21.0],
+        [141.0, -26.0],
+        [140.0, -26.0],
+        [140.0, -21.0],
+    ]

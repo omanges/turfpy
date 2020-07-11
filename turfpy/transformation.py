@@ -56,7 +56,7 @@ def circle(
     return Feature(geometry=Polygon([coordinates], **kwargs))
 
 
-def bbox_clip(geojson: Feature, bbox: list):
+def bbox_clip(geojson: Feature, bbox: list) -> Feature:
     """
     Takes a Feature or geometry and a bbox and clips the feature to the bbox
     :param geojson: Geojson data
@@ -152,7 +152,7 @@ def intersect(features: Union[List[Feature], FeatureCollection]) -> Feature:
     return intersection_feature
 
 
-def bezie_spline(line: Feature, resolution=10000, sharpness=0.85):
+def bezie_spline(line: Feature, resolution=10000, sharpness=0.85) -> Feature:
     """
     Takes a line and returns a curved version by applying a Bezier spline algorithm
     :param line: LineString Feature which is used to draw the curve
@@ -212,10 +212,28 @@ def union(
     features: Union[List[Feature], FeatureCollection]
 ) -> Union[Feature, FeatureCollection]:
     """
-    Given list of features or ``FeatureCollectio`` return union of those.
+    Given list of features or ``FeatureCollection`` return union of those.
 
     :param features: A list of GeoJSON features or FeatureCollection.
     :return: A GeoJSON Feature or FeatureCollection.
+
+    Example:
+    >>> from turfpy.transformation import union
+    >>> from geojson import Feature, Polygon, FeatureCollection
+    >>> f1 = Feature(geometry=Polygon([[
+    >>>     [-82.574787, 35.594087],
+    >>>     [-82.574787, 35.615581],
+    >>>     [-82.545261, 35.615581],
+    >>>     [-82.545261, 35.594087],
+     >>>     [-82.574787, 35.594087]
+    >>> ]]), properties={"fill": "#00f"})
+    >>> f2 = Feature(geometry=Polygon([[
+    >>>     [-82.560024, 35.585153],
+    >>>     [-82.560024, 35.602602],
+    >>>     [-82.52964, 35.602602],
+    >>>     [-82.52964, 35.585153],
+    >>>     [-82.560024, 35.585153]]]), properties={"fill": "#00f"})
+    >>> union(FeatureCollection([f1, f2], properties={"combine": "yes"}))
     """
 
     shapes = []
@@ -356,7 +374,7 @@ def get_ext_points(geom, points):
         raise Exception("Invalid Geometry")
 
 
-def concave(features: FeatureCollection, alpha=2):
+def concave(features: Union[Feature, FeatureCollection], alpha=2):
     """Generate concave hull for the given feature or Feature Collection.
 
     :param features: It can be a feature or Feature Collection
@@ -383,7 +401,7 @@ def concave(features: FeatureCollection, alpha=2):
     return Feature(geometry=mapping(concave_hull))
 
 
-def convex(features: FeatureCollection):
+def convex(features: Union[Feature, FeatureCollection]):
     """Generate convex hull for the given feature or Feature Collection
 
     :param features: It can be a feature or Feature Collection
@@ -410,13 +428,36 @@ def convex(features: FeatureCollection):
 
 def dissolve(
     features: Union[List[Feature], FeatureCollection], property_name: str = None
-) -> Union[Feature, FeatureCollection]:
+) -> FeatureCollection:
     """
     Take FeatureCollection or list of features to dissolve based on
     property_name provided.
     :param features: A list of GeoJSON features or FeatureCollection.
     :param property_name: Name of property based on which to dissolve.
     :return: A GeoJSON Feature or FeatureCollection.
+
+    Example:
+    >>> from geojson import Polygon, Feature, FeatureCollection
+    >>> from turfpy.transformation import dissolve
+    >>> f1 = Feature(geometry=Polygon([[
+    >>>     [0, 0],
+    >>>     [0, 1],
+    >>>     [1, 1],
+    >>>     [1, 0],
+    >>>     [0, 0]]]), properties={"combine": "yes", "fill": "#00f"})
+    >>> f2 = Feature(geometry=Polygon([[
+    >>>     [0, -1],
+    >>>     [0, 0],
+    >>>     [1, 0],
+    >>>     [1, -1],
+    >>>     [0,-1]]]), properties={"combine": "yes"})
+    >>> f3 = Feature(geometry=Polygon([[
+    >>>     [1,-1],
+    >>>     [1, 0],
+    >>>     [2, 0],
+    >>>     [2, -1],
+    >>>     [1, -1]]]), properties={"combine": "no"})
+    >>> dissolve(FeatureCollection([f1, f2, f3]), property_name='combine')
     """
     if isinstance(features, list):
         features = FeatureCollection(features)
@@ -428,7 +469,10 @@ def dissolve(
         for k, g in itertools.groupby(
             features["features"], key=lambda x: x["properties"].get(property_name)
         ):
-            result = union(list(g))
+            fc = FeatureCollection(list(g))
+            # if "properties" in features.keys():
+            #     fc['properties'] = features['properties']
+            result = union(fc)
             if result["type"] == "FeatureCollection":
                 for f in result["features"]:
                     dissolve_feature_list.append(f)
@@ -436,5 +480,57 @@ def dissolve(
                 dissolve_feature_list.append(result)
     else:
         return union(features)
+    if "properties" in features.keys():
+        return FeatureCollection(dissolve_feature_list, properties=features["properties"])
+    else:
+        return FeatureCollection(dissolve_feature_list)
 
-    return FeatureCollection(dissolve_feature_list)
+
+def difference(feature_1: Feature, feature_2: Feature) -> Feature:
+    """
+    Find the difference between given two features.
+    :param feature_1: A GeoJSON feature
+    :param feature_2: A GeoJSON feature
+    :return: A GeoJSON feature
+
+    Example:
+    >>> from geojson import Polygon, Feature
+    >>> from turfpy.transformation import difference
+    >>> f1 = Feature(geometry=Polygon([[
+    >>>     [128, -26],
+    >>>     [141, -26],
+    >>>     [141, -21],
+    >>>     [128, -21],
+    >>>     [128, -26]]]), properties={"combine": "yes", "fill": "#00f"})
+    >>> f2 = Feature(geometry=Polygon([[
+    >>>     [126, -28],
+    >>>     [140, -28],
+    >>>     [140, -20],
+    >>>     [126, -20],
+    >>>     [126, -28]]]), properties={"combine": "yes"})
+    >>> difference(f1, f2)
+    """
+    properties_list = []
+
+    if "properties" in feature_1.keys():
+        properties_list.append(feature_1["properties"])
+
+    if "properties" in feature_2.keys():
+        properties_list.append(feature_2["properties"])
+
+    shape_1 = shape(get_geom(feature_1))
+
+    shape_2 = shape(get_geom(feature_2))
+
+    difference_result = shape_1.difference(shape_2)
+
+    difference_result = mapping(difference_result)
+
+    if len(difference_result["coordinates"]) == 0:
+        return None
+
+    properties = merge_dict(properties_list)
+
+    difference_feature = Feature(geometry=difference_result, properties=properties)
+
+    return difference_feature
