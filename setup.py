@@ -5,7 +5,7 @@ from os import path
 
 from setuptools import find_packages, setup
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 needs_pytest = {"pytest", "test", "ptr"}.intersection(sys.argv)
 pytest_runner = ["pytest-runner"] if needs_pytest else []
