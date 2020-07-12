@@ -597,9 +597,12 @@ def point_on_feature(geojson) -> Feature:
     """
     Takes a Feature or FeatureCollection and returns a Point guaranteed to be on the
     surface of the feature.
+
     :param geojson: Feature or FeatureCollection on which the Point is to be found.
     :return: Feature point which on the provided feature.
-    Example:-
+
+    Example:
+
     >>> from turfpy.measurement import point_on_feature
     >>> from geojson import  Polygon, Feature
     >>> point = Polygon([((116, -36), (131, -32), (146, -43), (155, -25), (133, -9),
