@@ -8,6 +8,7 @@
 [![code quality: python](https://img.shields.io/lgtm/grade/python/g/omanges/turfpy.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/omanges/turfpy/context:python)
 [![Downloads](https://pepy.tech/badge/turfpy/month)](https://pepy.tech/project/turfpy/month)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/turfpy/turfpy-user-group?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Documentation Status](https://readthedocs.org/projects/turfpy/badge/?version=latest)](https://turfpy.readthedocs.io/en/latest/?badge=latest)
 
 Demo:
 
@@ -27,5 +28,9 @@ It supports various functionalities:
 Measurement functions: [measurements](https://github.com/omanges/turfpy/blob/master/measurements.md)
 
 Transformation functions: [transformation](https://github.com/omanges/turfpy/blob/master/transformation.md)
+
+## Documentation
+
+Documentation can be found at: [docs](https://turfpy.readthedocs.io/en/latest/)
 
 
