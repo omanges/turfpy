@@ -168,9 +168,11 @@ def area(
 def bbox(geojson):
     """
     This function is used to generate bounding box coordinates for given geojson.
+
     :param geojson: Geojson object for which bounding box is to be found.
     :return: bounding box for the given Geojson object.
-    Example :-
+
+    Example :
 
     >>> from turfpy.measurement import bbox
     >>> from geojson import Polygon
@@ -205,10 +207,13 @@ def bbox(geojson):
 def bbox_polygon(bbox: list, properties: dict = {}) -> Feature:
     """
     To generate a Polygon Feature for the bounding box generated using bbox.
+
     :param bbox: bounding box generated for a geojson.
     :param properties: properties to be added to the returned feature.
     :return: polygon for the given bounding box coordinates.
-    Example :-
+
+    Example :
+
     >>> from turfpy.measurement import bbox_polygon, bbox
     >>> from geojson import Polygon
 
@@ -256,10 +261,13 @@ def center(geojson, properties: Optional[dict] = None) -> Feature:
     """
     Takes a Feature or FeatureCollection and returns the absolute center point of all
     features.
+
     :param geojson: GeoJSON for which centered to be calculated.
     :param properties: Optional parameters to be set to the generated feature.
     :return: Point feature for the center.
-    Example :-
+
+    Example :
+
     >>> from turfpy.measurement import center
     >>> from geojson import Feature, FeatureCollection, Point
 
@@ -302,9 +310,12 @@ def envelope(geojson) -> Feature:
     """
     Takes any number of features and returns a rectangular Polygon that encompasses all
     vertices.
+
     :param geojson: geojson input features for which envelope to be generated.
     :return: returns envelope i.e bounding box polygon.
-    Example :-
+
+    Example :
+
     >>> from turfpy.measurement import envelope
     >>> from geojson import Feature, FeatureCollection, Point
 
@@ -325,10 +336,13 @@ def envelope(geojson) -> Feature:
 def length(geojson, units: str = "km"):
     """
     Takes a geojson and measures its length in the specified units.
+
     :param geojson: geojson for which the length is to be determined.
     :param units: units in which length is to be returned.
     :return: length of the geojson in specified units.
-    Example:-
+
+    Example:
+
     >>> from turfpy.measurement import length
     >>> from geojson import LineString
     >>> ls = LineString([(115, -32), (131, -22), (143, -25), (150, -34)])
@@ -408,10 +422,13 @@ def destination(origin: Feature, distance, bearing, options: dict = {}) -> Featu
 def centroid(geojson, properties: dict = None) -> Feature:
     """
     Takes one or more features and calculates the centroid using the mean of all vertices.
+
     :param geojson: Input features
     :param properties: Properties to be set to the output Feature point
     :return: Feature: Point feature which is the centroid of the given features
-    Example:-
+
+    Example:
+
     >>> from turfpy.measurement import centroid
     >>> from geojson import Polygon
     >>> polygon = Polygon([((-81, 41), (-88, 36), (-84, 31), (-80, 33), (-77, 39),
@@ -443,11 +460,14 @@ def centroid(geojson, properties: dict = None) -> Feature:
 def along(line: Feature, dist, unit: str = "km") -> Feature:
     """
     This function is used identify a Point at a specified distance along a LineString.
+
     :param line: LineString on which the point to be identified
     :param dist: Distance from the start of the LineString
     :param unit: unit of distance
     :return: Feature : Point at the distance on the LineString passed
-    Example :-
+
+    Example :
+
     >>> from turfpy.measurement import along
     >>> from geojson import LineString, Feature
     >>> ls = Feature(geometry=LineString([(-83, 30), (-84, 36), (-78, 41)]))
@@ -577,9 +597,12 @@ def point_on_feature(geojson) -> Feature:
     """
     Takes a Feature or FeatureCollection and returns a Point guaranteed to be on the
     surface of the feature.
+
     :param geojson: Feature or FeatureCollection on which the Point is to be found.
     :return: Feature point which on the provided feature.
-    Example:-
+
+    Example:
+
     >>> from turfpy.measurement import point_on_feature
     >>> from geojson import  Polygon, Feature
     >>> point = Polygon([((116, -36), (131, -32), (146, -43), (155, -25), (133, -9),
@@ -805,10 +828,13 @@ def explode(geojson):
 def polygon_tangents(point, polygon):
     """
     Finds the tangents of a (Multi)Polygon from a Point.
+
     :param point: Point or Point Feature.
     :param polygon: (Multi)Polygon or (Multi)Polygon Feature.
     :return: FeatureCollection of two tangent Point Feature.
-    Example:-
+
+    Example:
+
     >>> from turfpy.measurement import polygon_tangents
     >>> from geojson import Polygon, Point, Feature
     >>> point = Feature(geometry=Point((61, 5)))
@@ -1157,6 +1183,7 @@ def rhumb_distance(start, to, units="km"):
     :return: Distance calculated from provided start to end Point.
 
     Example:
+
     >>> from turfpy.measurement import rhumb_distance
     >>> from geojson import Point, Feature
     >>> start = Feature(geometry=Point((-75.343, 39.984)))

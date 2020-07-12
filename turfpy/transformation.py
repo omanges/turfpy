@@ -218,22 +218,22 @@ def union(
     :return: A GeoJSON Feature or FeatureCollection.
 
     Example:
-    >>> from turfpy.transformation import union
-    >>> from geojson import Feature, Polygon, FeatureCollection
-    >>> f1 = Feature(geometry=Polygon([[
-    >>>     [-82.574787, 35.594087],
-    >>>     [-82.574787, 35.615581],
-    >>>     [-82.545261, 35.615581],
-    >>>     [-82.545261, 35.594087],
-     >>>     [-82.574787, 35.594087]
-    >>> ]]), properties={"fill": "#00f"})
-    >>> f2 = Feature(geometry=Polygon([[
-    >>>     [-82.560024, 35.585153],
-    >>>     [-82.560024, 35.602602],
-    >>>     [-82.52964, 35.602602],
-    >>>     [-82.52964, 35.585153],
-    >>>     [-82.560024, 35.585153]]]), properties={"fill": "#00f"})
-    >>> union(FeatureCollection([f1, f2], properties={"combine": "yes"}))
+        >>> from turfpy.transformation import union
+        >>> from geojson import Feature, Polygon, FeatureCollection
+        >>> f1 = Feature(geometry=Polygon([[
+        ...          [-82.574787, 35.594087],
+        ...          [-82.574787, 35.615581],
+        ...          [-82.545261, 35.615581],
+        ...          [-82.545261, 35.594087],
+        ...          [-82.574787, 35.594087]
+        ...      ]]), properties={"fill": "#00f"})
+        >>> f2 = Feature(geometry=Polygon([[
+        ...          [-82.560024, 35.585153],
+        ...          [-82.560024, 35.602602],
+        ...          [-82.52964, 35.602602],
+        ...          [-82.52964, 35.585153],
+        ...          [-82.560024, 35.585153]]]), properties={"fill": "#00f"})
+        >>> union(FeatureCollection([f1, f2], properties={"combine": "yes"}))
     """
 
     shapes = []
@@ -383,6 +383,7 @@ def concave(features: Union[Feature, FeatureCollection], alpha=2):
     :return: Feature of concave hull polygon
 
     Example:
+
     >>> from turfpy.transformation import concave
     >>> from geojson import FeatureCollection, Feature, Point
     >>> f1 = Feature(geometry=Point((-63.601226, 44.642643)))
@@ -408,6 +409,7 @@ def convex(features: Union[Feature, FeatureCollection]):
     :return: Feature of convex hull polygon
 
     Example:
+
     >>> from turfpy.transformation import convex
     >>> from geojson import FeatureCollection, Feature, Point
     >>> f1 = Feature(geometry=Point((10.195312, 43.755225)))
@@ -437,6 +439,7 @@ def dissolve(
     :return: A GeoJSON Feature or FeatureCollection.
 
     Example:
+
     >>> from geojson import Polygon, Feature, FeatureCollection
     >>> from turfpy.transformation import dissolve
     >>> f1 = Feature(geometry=Polygon([[
@@ -494,6 +497,7 @@ def difference(feature_1: Feature, feature_2: Feature) -> Feature:
     :return: A GeoJSON feature
 
     Example:
+
     >>> from geojson import Polygon, Feature
     >>> from turfpy.transformation import difference
     >>> f1 = Feature(geometry=Polygon([[
