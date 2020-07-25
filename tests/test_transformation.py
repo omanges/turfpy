@@ -9,10 +9,10 @@ from turfpy.transformation import (
     circle,
     concave,
     convex,
+    difference,
+    dissolve,
     intersect,
     union,
-    dissolve,
-    difference,
 )
 
 

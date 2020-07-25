@@ -32,6 +32,7 @@ from turfpy.helper import (
 from turfpy.meta import (
     coord_each,
     feature_each,
+    geom_each,
     geom_reduce,
     segment_each,
     segment_reduce,
@@ -1281,3 +1282,43 @@ def square(bbox: list):
 
 
 # -------------------------------#
+
+
+def points_within_polygon(
+    points: Union[Feature, FeatureCollection], polygons: Union[Feature, FeatureCollection]
+) -> FeatureCollection:
+    """Find Point(s) that fall within (Multi)Polygon(s).
+
+    This function takes two inputs GeoJSON Feature :class:`geojson.Point` or
+    :class:`geojson.FeatureCollection` of Points and GeoJSON Feature
+    :class:`geojson.Polygon` or Feature :class:`geojson.MultiPolygon` or
+    FeatureCollection of :class:`geojson.Polygon` or Feature
+    :class:`geojson.MultiPolygon`. and returns all points with in in those
+    Polygon(s) or (Multi)Polygon(s).
+
+    :param points: A single GeoJSON ``Point`` feature or FeatureCollection of Points.
+    :param polygons: A Single GeoJSON Polygon/MultiPolygon or FeatureCollection of
+        Polygons/MultiPolygons.
+    :return: A :class:`geojson.FeatureCollection` of Points.
+    """
+    results = []
+
+    def __callback_feature_each(feature, feature_index):
+        contained = False
+
+        def __callback_geom_each(
+            current_geometry, feature_index, feature_properties, feature_bbox, feature_id
+        ):
+            if boolean_point_in_polygon(feature, current_geometry):
+                nonlocal contained
+                contained = True
+
+            if contained:
+                nonlocal results
+                results.append(feature)
+
+        geom_each(polygons, __callback_geom_each)
+        return True
+
+    feature_each(points, __callback_feature_each)
+    return FeatureCollection(results)
