@@ -521,10 +521,13 @@ def along(line: Feature, dist, unit: str = "km") -> Feature:
 def midpoint(point1: Feature, point2: Feature) -> Feature:
     """
     This function is used to get midpoint between any the two points.
+
     :param point1: First point.
     :param point2: Second point.
     :return: Feature: Point which is the midpoint of the two points given as input.
-    Example:-
+
+    Example:
+
     >>> from turfpy.measurement import midpoint
     >>> from geojson import Point, Feature
     >>> point1 = Feature(geometry=Point((144.834823, -37.771257)))
