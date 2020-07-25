@@ -32,7 +32,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.doctest',
-    # 'sphinx.ext.autodoc.typehints',
+    'sphinx.ext.autodoc.typehints',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -66,15 +66,15 @@ master_doc = 'index'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
-# autodoc_typehints = "description"
+autodoc_typehints = "description"
 
 # -- autodoc options configuration -------------------------------------------------
 
-# autodoc_default_options = {
-#     'members': True,
-#     'undoc-members': True,
-#     'special-members': True,
-#     'show-inheritance': True,
-#     'member-order': 'bysource',
-#     'exclude-members': '__dict__,__weakref__,__module__'
-# }
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+    'special-members': True,
+    'show-inheritance': True,
+    'member-order': 'bysource',
+    'exclude-members': '__dict__,__weakref__,__module__'
+}
