@@ -1,5 +1,5 @@
 .. turfpy documentation master file, created by
-   sphinx-quickstart on Sun Jul 12 11:14:48 2020.
+   sphinx-quickstart on Sat Jul 25 19:18:59 2020.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
