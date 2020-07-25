@@ -4,10 +4,10 @@ understand the patterns and relationships of geographic features.
 This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
+import itertools
 import math
 from math import floor
 from typing import List, Union
-import itertools
 
 import numpy as np
 from geojson import Feature, FeatureCollection, LineString, Polygon
