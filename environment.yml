@@ -6,4 +6,5 @@ dependencies:
   - pip
   - pip:
     - "-r requirements.txt"
-    - "-r requirements_examples.txt"
+    - "-r dev_requirements.txt"
+    - "-e ."
