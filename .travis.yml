@@ -1,10 +1,18 @@
 language: python
 python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
-#  - "3.9-dev"
+- '3.6'
+- '3.7'
+- '3.8'
 install:
-  - pip install tox-travis
+- pip install tox-travis
 script:
-  - travis_wait 30 tox
+- travis_wait 30 tox
+deploy:
+  provider: pypi
+  username: __token__
+  password:
+    secure: nbVjj9nxpJ5yT/vY9TZqLl17yCTV+PDJ9aCcQS6ZsWukGbmgl0RW8AiXNzUPToz6sx2krPDj/8nChEExIvhBWGbeNBVudx4x0RUjxQZWDMWDJrP2wxJkzatsO1D/KK9eXx9pkloqtR1JZzRNSiV2CQ9g30IUftPzvncYCBn6QkUqHflLBt1uh/mlccXfjuoE7LGkS6e+3VLDHgGEgHCq+39IlWp5336Sur5nW6xf7h0qk/6pyEXprA46ydq38k+1KII6yKnh0qJ0oqPkQG84XTptZG8kNUQ+suKNCbwp8Uutm7lo8/zbgIH+sDEfZz1dX/o2UMKaV3LQ2cqMkXuO91V7xJX0XnUNFABLc8GujuTMsJi7bBf/dj0eNrGxZGVi/7OpQnvor7/Bw55x88DPMJ30YHybcOPydu0h6y9hX4jP0WlYkoZMQnBfdVwWYCKs3P/WCFKH7fi8VtV9c2DVaMRmainnmp5Nji8EUTiwHADeZhX3s4yRYRYNm+5DlpuCpjLd4RXj1Df+jJxByP4f3XI8e0gw48H65GhYOfYQIkb+uRtXx6mKAiU7RjOOZ7ebkSFvPbtqkh3pQYOnOglNgY5pW0XUukAAeD0JzCFVmP3Q7EpnDPoXVM/DnPxE56+N4MdenBiH0L2CpbTi/6yn1D1TgqE9dJOzeLWOhGBmGKk=
+  on:
+    tags: true
+    branch: master
+    python: 3.8
