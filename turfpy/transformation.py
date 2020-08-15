@@ -803,10 +803,11 @@ def tesselate(poly: Feature) -> FeatureCollection:
     :return: A GeoJSON FeatureCollection of triangular polygons.
 
     Example:
+    >>> from geojson import Feature
     >>> from turfpy.transformation import tesselate
     >>> polygon = Feature(geometry={"coordinates": [[[11, 0], [22, 4], [31, 0], [31, 11],
     ... [21, 15], [11, 11], [11, 0]]], "type": "Polygon"})
-    >>> results = tesselate(polygon)
+    >>> tesselate(polygon)
     """
     if poly.geometry.type != "Polygon" and poly.geometry.type != "MultiPolygon":
         raise ValueError("Geometry must be Polygon or MultiPolygon")

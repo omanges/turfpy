@@ -295,6 +295,23 @@ f = Feature(geometry=Polygon([[[0,29],[3.5,29],[2.5,32],[0,29]]]))
 transform_scale(f, 3, origin=[0, 29])
 ```
 
+* tesselate : Tesselates a Feature into a FeatureCollection of triangles using earcut.
+
+| Argument| Type | Description|
+| -------   |------ | ----------- |
+| `poly`  | Feature(Polygon) | the polygon to tesselate |
+
+| Return  | Type | Description |
+| ------- | ------ | ----------- |
+| `geojson`  | FeatureCollection  | a geometrycollection feature |
+
+```python
+from geojson import Feature
+from turfpy.transformation import tesselate
+polygon = Feature(geometry={"coordinates": [[[11, 0], [22, 4], [31, 0], [31, 11],[21, 15], [11, 11], [11, 0]]], "type": "Polygon"})
+tesselate(polygon)
+```
+
 ## Units Type
 Some functionalities support `units` as a parameter, default values of `units` is `kilometers` for the functionalities that have units are parameters. The values for it are:
 ```text
