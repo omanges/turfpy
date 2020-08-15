@@ -12,10 +12,11 @@ from turfpy.transformation import (
     difference,
     dissolve,
     intersect,
-    union,
+    tesselate,
     transform_rotate,
-    transform_translate,
     transform_scale,
+    transform_translate,
+    union,
 )
 
 
@@ -313,3 +314,52 @@ def test_transform_scale():
         [7.763024, 38.0],
         [0.0, 29.0],
     ]
+
+
+def test_tesselate():
+    f = Feature(
+        geometry={
+            "coordinates": [
+                [[11, 0], [22, 4], [31, 0], [31, 11], [21, 15], [11, 11], [11, 0]]
+            ],
+            "type": "Polygon",
+        }
+    )
+    result = tesselate(f)
+    assert result == {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "geometry": {
+                    "coordinates": [[[11, 11], [11, 0], [22, 4], [11, 11]]],
+                    "type": "Polygon",
+                },
+                "properties": {},
+                "type": "Feature",
+            },
+            {
+                "geometry": {
+                    "coordinates": [[[22, 4], [31, 0], [31, 11], [22, 4]]],
+                    "type": "Polygon",
+                },
+                "properties": {},
+                "type": "Feature",
+            },
+            {
+                "geometry": {
+                    "coordinates": [[[31, 11], [21, 15], [11, 11], [31, 11]]],
+                    "type": "Polygon",
+                },
+                "properties": {},
+                "type": "Feature",
+            },
+            {
+                "geometry": {
+                    "coordinates": [[[11, 11], [22, 4], [31, 11], [11, 11]]],
+                    "type": "Polygon",
+                },
+                "properties": {},
+                "type": "Feature",
+            },
+        ],
+    }
