@@ -10,9 +10,10 @@ import math
 from math import floor
 from typing import List, Union
 
-import geojson
 import numpy as np
-from geojson import Feature, FeatureCollection, LineString, Polygon
+from geojson import Feature, FeatureCollection, LineString
+from geojson import Point as GeoPoint
+from geojson import Polygon
 from scipy.spatial import Delaunay
 from shapely import geometry as geometry
 from shapely.geometry import Point, mapping, shape
@@ -595,12 +596,10 @@ def transform_rotate(
         coord, coord_index, feature_index, multi_feature_index, geometry_index
     ):
         nonlocal pivot, angle
-        initial_angle = rhumb_bearing(geojson.Point(pivot), geojson.Point(coord))
+        initial_angle = rhumb_bearing(GeoPoint(pivot), GeoPoint(coord))
         final_angle = initial_angle + angle
-        distance = rhumb_distance(geojson.Point(pivot), geojson.Point(coord))
-        new_coords = get_coord(
-            rhumb_destination(geojson.Point(pivot), distance, final_angle)
-        )
+        distance = rhumb_distance(GeoPoint(pivot), GeoPoint(coord))
+        new_coords = get_coord(rhumb_destination(GeoPoint(pivot), distance, final_angle))
         coord[0] = new_coords[0]
         coord[1] = new_coords[1]
 
@@ -663,7 +662,7 @@ def transform_translate(
     ):
         nonlocal distance, direction, units, z_translation
         new_coords = get_coord(
-            rhumb_destination(geojson.Point(coord), distance, direction, {units: units})
+            rhumb_destination(GeoPoint(coord), distance, direction, {units: units})
         )
         coord[0] = new_coords[0]
         coord[1] = new_coords[1]
@@ -731,12 +730,10 @@ def scale(feature, factor, origin):
         coord, coord_index, feature_index, multi_feature_index, geometry_index
     ):
         nonlocal factor, origin
-        original_distance = rhumb_distance(geojson.Point(origin), geojson.Point(coord))
-        bearing = rhumb_bearing(geojson.Point(origin), geojson.Point(coord))
+        original_distance = rhumb_distance(GeoPoint(origin), GeoPoint(coord))
+        bearing = rhumb_bearing(GeoPoint(origin), GeoPoint(coord))
         new_distance = original_distance * factor
-        new_coord = get_coord(
-            rhumb_destination(geojson.Point(origin), new_distance, bearing)
-        )
+        new_coord = get_coord(rhumb_destination(GeoPoint(origin), new_distance, bearing))
         coord[0] = new_coord[0]
         coord[1] = new_coord[1]
         if len(coord) == 3:
