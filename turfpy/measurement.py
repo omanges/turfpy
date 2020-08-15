@@ -38,6 +38,7 @@ from turfpy.meta import (
     segment_reduce,
 )
 
+
 # ---------- Bearing -----------#
 
 
@@ -438,18 +439,18 @@ def centroid(geojson, properties: dict = None) -> Feature:
     """
     x_sum = 0
     y_sum = 0
-    len = 0
+    length = 0
 
     def _callback_coord_each(
         coord, coord_index, feature_index, multi_feature_index, geometry_index
     ):
-        nonlocal x_sum, y_sum, len
+        nonlocal x_sum, y_sum, length
         x_sum += coord[0]
         y_sum += coord[1]
-        len += 1
+        length += 1
 
     coord_each(geojson, _callback_coord_each)
-    point = Point((x_sum / len, y_sum / len))
+    point = Point((x_sum / length, y_sum / length))
     return Feature(geometry=point, properties=properties if properties else {})
 
 
@@ -1104,7 +1105,7 @@ def calculate_rhumb_bearing(fro, to):
 # ------------ rhumb destination -----------#
 
 
-def rhumb_destination(origin, distance, bearing, options) -> Feature:
+def rhumb_destination(origin, distance, bearing, options: dict = {}) -> Feature:
     """
     Returns the destination Point having travelled the given distance along a Rhumb line
     from the origin Point with the (varant) given bearing.
@@ -1129,7 +1130,7 @@ def rhumb_destination(origin, distance, bearing, options) -> Feature:
     'properties': {"marker-color": "F00"}})
     """
     was_negative_distance = distance < 0
-    distance_in_meters = convert_length(abs(distance), options.get("units", ""), "m")
+    distance_in_meters = convert_length(abs(distance), options.get("units", "km"), "m")
     if was_negative_distance:
         distance_in_meters = -1 * (abs(distance_in_meters))
     coords = get_coord(origin)

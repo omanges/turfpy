@@ -4,11 +4,13 @@ understand the patterns and relationships of geographic features.
 This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
+import copy
 import itertools
 import math
 from math import floor
 from typing import List, Union
 
+import geojson
 import numpy as np
 from geojson import Feature, FeatureCollection, LineString, Polygon
 from scipy.spatial import Delaunay
@@ -16,8 +18,18 @@ from shapely import geometry as geometry
 from shapely.geometry import Point, mapping, shape
 from shapely.ops import cascaded_union, polygonize
 
-from turfpy.helper import get_geom
-from turfpy.measurement import bbox_polygon, destination
+from turfpy.helper import get_geom, get_coord, get_type
+from turfpy.measurement import (
+    bbox_polygon,
+    destination,
+    centroid,
+    rhumb_bearing,
+    rhumb_distance,
+    rhumb_destination,
+    bbox,
+    center,
+)
+from turfpy.meta import coord_each, feature_each
 
 from .dev_lib.spline import Spline
 
@@ -538,3 +550,246 @@ def difference(feature_1: Feature, feature_2: Feature) -> Feature:
     difference_feature = Feature(geometry=difference_result, properties=properties)
 
     return difference_feature
+
+
+def transform_rotate(
+    feature: Union[List[Feature], FeatureCollection],
+    angle: float,
+    pivot: list = None,
+    mutate: bool = False,
+):
+    """
+    Rotates any geojson Feature or Geometry of a specified angle,
+    around its centroid or a given pivot
+    point; all rotations follow the right-hand rule
+    :param feature: Geojson to be rotated
+    :param angle: angle of rotation (along the vertical axis),
+        from North in decimal degrees, negative clockwise
+    :param pivot: point around which the rotation will be performed
+    :param mutate: allows GeoJSON input to be mutated
+        (significant performance increase if True)
+    :return: the rotated GeoJSON
+
+    Example :-
+
+    >>> from turfpy.transformation import transform_rotate
+    >>> from geojson import Polygon, Feature
+    >>> f = Feature(geometry=Polygon([[[0,29],[3.5,29],[2.5,32],[0,29]]]))
+    >>> pivot = [0, 25]
+    >>> transform_rotate(f, 10, pivot)
+    """
+    if not feature:
+        raise Exception("geojson is required")
+
+    if angle == 0:
+        return feature
+
+    if not pivot:
+        pivot = centroid(feature)["geometry"]["coordinates"]
+
+    if not mutate:
+        feature = copy.deepcopy(feature)
+
+    def _callback_coord_each(
+        coord, coord_index, feature_index, multi_feature_index, geometry_index
+    ):
+        nonlocal pivot, angle
+        initial_angle = rhumb_bearing(geojson.Point(pivot), geojson.Point(coord))
+        final_angle = initial_angle + angle
+        distance = rhumb_distance(geojson.Point(pivot), geojson.Point(coord))
+        new_coords = get_coord(
+            rhumb_destination(geojson.Point(pivot), distance, final_angle)
+        )
+        coord[0] = new_coords[0]
+        coord[1] = new_coords[1]
+
+    coord_each(feature, _callback_coord_each)
+
+    return feature
+
+
+def transform_translate(
+    feature: Union[List[Feature], FeatureCollection],
+    distance: float,
+    direction: float,
+    units: str = "km",
+    z_translation: float = 0,
+    mutate: bool = False,
+):
+    """
+    Moves any geojson Feature or Geometry
+    of a specified distance along a
+    Rhumb Line on the provided direction angle.
+    :param feature: Geojson data that is to be translated
+    :param distance: length of the motion;
+        negative values determine motion in opposite direction
+    :param direction: of the motion; angle
+        from North in decimal degrees, positive clockwise
+    :param units: units for the distance and z_translation
+    :param z_translation: length of the vertical motion, same unit of distance
+    :param mutate: allows GeoJSON input to be mutated
+        (significant performance increase if true)
+    :return: the translated GeoJSON
+
+    Example :-
+
+    >>> from turfpy.transformation import transform_translate
+    >>> from geojson import Polygon, Feature
+    >>> f = Feature(geometry=Polygon([[[0,29],[3.5,29],[2.5,32],[0,29]]]))
+    >>> transform_translate(f, 100, 35, mutate=True)
+    """
+    if not feature:
+        raise Exception("geojson is required")
+
+    if not distance:
+        raise Exception("distance is required")
+
+    if distance == 0 and z_translation == 0:
+        return feature
+
+    if not direction:
+        raise Exception("direction is required")
+
+    if distance < 0:
+        distance = -distance
+        direction = direction + 180
+
+    if not mutate:
+        feature = copy.deepcopy(feature)
+
+    def _callback_coord_each(
+        coord, coord_index, feature_index, multi_feature_index, geometry_index
+    ):
+        nonlocal distance, direction, units, z_translation
+        new_coords = get_coord(
+            rhumb_destination(geojson.Point(coord), distance, direction, {units: units})
+        )
+        coord[0] = new_coords[0]
+        coord[1] = new_coords[1]
+        if z_translation and len(coord) == 3:
+            coord[2] += z_translation
+
+    coord_each(feature, _callback_coord_each)
+
+    return feature
+
+
+def transform_scale(
+    features, factor: float, origin: Union[str, list] = "centroid", mutate: bool = False,
+):
+    """
+    Scale a GeoJSON from a given
+    point by a factor of scaling
+    (ex: factor=2 would make the GeoJSON 200% larger).
+    If a FeatureCollection is provided, the origin
+    point will be calculated based on each individual Feature.
+    :param features: GeoJSON to be scaled
+    :param factor: of scaling, positive or negative values greater than 0
+    :param origin: Point from which the scaling will occur
+        (string options: sw/se/nw/ne/center/centroid)
+    :param mutate: allows GeoJSON input to be mutated
+        (significant performance increase if true)
+    :return: Scaled Geojson
+
+    Example :-
+
+    >>> from turfpy.transformation import transform_scale
+    >>> from geojson import Polygon, Feature
+    >>> f = Feature(geometry=Polygon([[[0,29],[3.5,29],[2.5,32],[0,29]]]))
+    >>> transform_scale(f, 3, origin=[0, 29])
+    """
+    if not features:
+        raise Exception("geojson is required")
+
+    if not factor:
+        raise Exception("invalid factor")
+
+    if not mutate:
+        features = copy.deepcopy(features)
+
+    if features["type"] == "FeatureCollection":
+
+        def _callback_feature_each(feature, feature_index):
+            nonlocal factor, origin, features
+            features["features"][feature_index] = scale(feature, factor, origin)
+
+        feature_each(features, _callback_feature_each)
+        return features
+
+    return scale(features, factor, origin)
+
+
+def scale(feature, factor, origin):
+    is_point = get_type(feature) == "Point"
+    origin = define_origin(feature, origin)
+
+    if factor == 1 or is_point:
+        return feature
+
+    def _callback_coord_each(
+        coord, coord_index, feature_index, multi_feature_index, geometry_index
+    ):
+        nonlocal factor, origin
+        original_distance = rhumb_distance(geojson.Point(origin), geojson.Point(coord))
+        bearing = rhumb_bearing(geojson.Point(origin), geojson.Point(coord))
+        new_distance = original_distance * factor
+        new_coord = get_coord(
+            rhumb_destination(geojson.Point(origin), new_distance, bearing)
+        )
+        coord[0] = new_coord[0]
+        coord[1] = new_coord[1]
+        if len(coord) == 3:
+            coord[2] = coord[2] * factor
+
+    coord_each(feature, _callback_coord_each)
+
+    return feature
+
+
+def define_origin(geojson, origin):
+    if not origin:
+        origin = "centroid"
+
+    if isinstance(origin, list):
+        return get_coord(origin)
+
+    bb = bbox(geojson)
+    west = bb[0]
+    south = bb[1]
+    east = bb[2]
+    north = bb[3]
+
+    if (
+        origin == "sw"
+        or origin == "southwest"
+        or origin == "westsouth"
+        or origin == "bottomleft"
+    ):
+        return [west, south]
+    elif (
+        origin == "se"
+        or origin == "southeast"
+        or origin == "eastsouth"
+        or origin == "bottomright"
+    ):
+        return [east, south]
+    elif (
+        origin == "nw"
+        or origin == "northwest"
+        or origin == "westnorth"
+        or origin == "topleft"
+    ):
+        return [west, north]
+    elif (
+        origin == "ne"
+        or origin == "northeast"
+        or origin == "eastnorth"
+        or origin == "topright"
+    ):
+        return [east, north]
+    elif origin == "center":
+        return center(geojson)["geometry"]["coordinates"]
+    elif origin is None or origin == "centroid":
+        return centroid(geojson)["geometry"]["coordinates"]
+    else:
+        raise Exception("invalid origin")

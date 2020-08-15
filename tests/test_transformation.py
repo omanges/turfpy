@@ -13,6 +13,9 @@ from turfpy.transformation import (
     dissolve,
     intersect,
     union,
+    transform_rotate,
+    transform_translate,
+    transform_scale,
 )
 
 
@@ -262,4 +265,51 @@ def test_difference():
         [141.0, -26.0],
         [140.0, -26.0],
         [140.0, -21.0],
+    ]
+
+
+def test_transform_rotate():
+    f = Feature(geometry=Polygon([[[0, 29], [3.5, 29], [2.5, 32], [0, 29]]]))
+    pivot = [0, 25]
+    rotated_feature = transform_rotate(f, 10, pivot)
+
+    assert rotated_feature["type"] == "Feature"
+    assert len(rotated_feature["geometry"]["coordinates"][0]) == 4
+
+    assert rotated_feature["geometry"]["coordinates"][0] == [
+        [0.779582, 28.939231],
+        [4.215029, 28.397872],
+        [3.837175, 31.512519],
+        [0.779582, 28.939231],
+    ]
+
+
+def test_transform_translate():
+
+    f = Feature(geometry=Polygon([[[0, 29], [3.5, 29], [2.5, 32], [0, 29]]]))
+
+    translate_feature = transform_translate(f, 100, 35, mutate=True)
+
+    assert translate_feature["type"] == "Feature"
+    assert len(translate_feature["geometry"]["coordinates"][0]) == 4
+    assert translate_feature["geometry"]["coordinates"][0] == [
+        [0.591903, 29.73668],
+        [4.091903, 29.73668],
+        [3.110728, 32.73668],
+        [0.591903, 29.73668],
+    ]
+
+
+def test_transform_scale():
+    f = Feature(geometry=Polygon([[[0, 29], [3.5, 29], [2.5, 32], [0, 29]]]))
+
+    translate_feature = transform_scale(f, 3, origin=[0, 29])
+
+    assert translate_feature["type"] == "Feature"
+    assert len(translate_feature["geometry"]["coordinates"][0]) == 4
+    assert translate_feature["geometry"]["coordinates"][0] == [
+        [0.0, 29.0],
+        [10.5, 29.0],
+        [7.763024, 38.0],
+        [0.0, 29.0],
     ]

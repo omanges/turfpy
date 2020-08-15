@@ -230,6 +230,71 @@ f2 = Feature(geometry=Polygon([[
 difference(f1, f2)
 ```
 
+* transform rotate : Rotates any geojson Feature or Geometry of a specified angle, around its centroid or a given pivot point; all rotations follow the right-hand rule
+
+| Argument| Type | Description|
+| -------   |------ | ----------- |
+| `feature`  |Feature  | A GeoJSON feature |
+| `angle`  | float    | angle of rotation (along the vertical axis), from North in decimal degrees, negative clockwise |
+| `pivot`  | list(optional)    | point around which the rotation will be performed, deafult values is centroid |
+| `mutate`  | boolean(optional)     | allows GeoJSON input to be mutated (significant performance increase if True), deafult value is False |
+
+| Return  | Type | Description |
+| ------- | ------ | ----------- |
+| `geojson`  | Feature  | The rotated GeoJSON |
+
+```python
+from turfpy.transformation import transform_rotate
+from geojson import Polygon, Feature
+f = Feature(geometry=Polygon([[[0,29],[3.5,29],[2.5,32],[0,29]]]))
+pivot = [0, 25]
+transform_rotate(f, 10, pivot)
+```
+
+* transform translate : Moves any geojson Feature or Geometry of a specified distance along a Rhumb Line on the provided direction angle.
+
+| Argument| Type | Description|
+| -------   |------ | ----------- |
+| `feature`  |Feature  | A GeoJSON feature |
+| `distance`  | float    | length of the motion, negative values determine motion in opposite direction |
+| `direction`  | float   | of the motion, angle from North in decimal degrees, positive clockwise |
+| `units`  | str(optional)     | Unit of distance, default is 'km' refer [Units type](#units-type) section|
+| `z_translation`  | float(optional)     | length of the vertical motion, same unit of distance, default value is 0 |
+| `mutate`  | boolean(optional)     | allows GeoJSON input to be mutated (significant performance increase if True), deafult value is False |
+
+| Return  | Type | Description |
+| ------- | ------ | ----------- |
+| `geojson`  | Feature  | The translated GeoJSON |
+
+```python
+from turfpy.transformation import transform_translate
+from geojson import Polygon, Feature
+f = Feature(geometry=Polygon([[[0,29],[3.5,29],[2.5,32],[0,29]]]))
+transform_translate(f, 100, 35, mutate=True)
+```
+
+* transform scale : Scale a GeoJSON from a given point by a factor of scaling (ex: factor=2 would make the GeoJSON 200% larger).
+If a FeatureCollection is provided, the origin
+point will be calculated based on each individual Feature.
+
+| Argument| Type | Description|
+| -------   |------ | ----------- |
+| `feature`  | Feature | FeatureCollection | A GeoJSON to be scaled |
+| `factor`  | float    | factor of scaling, positive or negative values greater than 0 |
+| `origin`  | str or list   | Point from which the scaling will occur (string options: sw/se/nw/ne/center/centroid), can also provide a point, deafult value is centroid |
+| `mutate`  | boolean(optional)     | allows GeoJSON input to be mutated (significant performance increase if True), deafult value is False |
+
+| Return  | Type | Description |
+| ------- | ------ | ----------- |
+| `geojson`  | Feature  | The scaled GeoJSON |
+
+```python
+from turfpy.transformation import transform_scale
+from geojson import Polygon, Feature
+f = Feature(geometry=Polygon([[[0,29],[3.5,29],[2.5,32],[0,29]]]))
+transform_scale(f, 3, origin=[0, 29])
+```
+
 ## Units Type
 Some functionalities support `units` as a parameter, default values of `units` is `kilometers` for the functionalities that have units are parameters. The values for it are:
 ```text
