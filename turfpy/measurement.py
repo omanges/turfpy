@@ -38,7 +38,6 @@ from turfpy.meta import (
     segment_reduce,
 )
 
-
 # ---------- Bearing -----------#
 
 

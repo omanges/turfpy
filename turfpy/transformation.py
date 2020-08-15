@@ -18,19 +18,20 @@ from shapely import geometry as geometry
 from shapely.geometry import Point, mapping, shape
 from shapely.ops import cascaded_union, polygonize
 
-from turfpy.helper import get_geom, get_coord, get_type
+from turfpy.helper import get_coord, get_geom, get_type
 from turfpy.measurement import (
-    bbox_polygon,
-    destination,
-    centroid,
-    rhumb_bearing,
-    rhumb_distance,
-    rhumb_destination,
     bbox,
+    bbox_polygon,
     center,
+    centroid,
+    destination,
+    rhumb_bearing,
+    rhumb_destination,
+    rhumb_distance,
 )
 from turfpy.meta import coord_each, feature_each
 
+from .dev_lib.earcut import earcut
 from .dev_lib.spline import Spline
 
 
@@ -793,3 +794,63 @@ def define_origin(geojson, origin):
         return centroid(geojson)["geometry"]["coordinates"]
     else:
         raise Exception("invalid origin")
+
+
+def tesselate(poly: Feature) -> FeatureCollection:
+    """Tesselates a Feature into a FeatureCollection of triangles using earcut.
+
+    :param poly: A GeoJSON feature ``class:geojson.Polygon``.
+    :return: A GeoJSON FeatureCollection of triangular polygons.
+
+    Example:
+    >>> from turfpy.transformation import tesselate
+    >>> polygon = Feature(geometry={"coordinates": [[[11, 0], [22, 4], [31, 0], [31, 11],
+    ... [21, 15], [11, 11], [11, 0]]], "type": "Polygon"})
+    >>> results = tesselate(polygon)
+    """
+    if poly.geometry.type != "Polygon" and poly.geometry.type != "MultiPolygon":
+        raise ValueError("Geometry must be Polygon or MultiPolygon")
+
+    fc = FeatureCollection([])
+
+    if poly.geometry.type == "Polygon":
+        fc["features"] = __process_polygon(poly.geometry.coordinates)
+    else:
+        for co in poly.geometry.coordinates:
+            fc["features"].extend(__process_polygon(co))
+    return fc
+
+
+def __process_polygon(coordinates):
+    data = __flatten_coords(coordinates)
+    dim = 2
+    result = earcut(data["vertices"], data["holes"], dim)
+
+    features = []
+    vertices = []
+    for i, val in enumerate(result):
+        index = val
+        vertices.append(
+            [data["vertices"][index * dim], data["vertices"][index * dim + 1]]
+        )
+    i = 0
+    while i < len(vertices):
+        coords = vertices[i : i + 3]
+        coords.append(vertices[i])
+        features.append(Feature(geometry={"coordinates": [coords], "type": "Polygon"}))
+        i += 3
+    return features
+
+
+def __flatten_coords(data):
+    dim = len(data[0][0])
+    result = {"vertices": [], "holes": [], "dimensions": dim}
+    hole_index = 0
+    for i, val in enumerate(data):
+        for j, _ in enumerate(val):
+            for d in range(dim):
+                result["vertices"].append(data[i][j][d])
+        if i > 0:
+            hole_index += len(data[i - 1])
+            result["holes"].append(hole_index)
+    return result
