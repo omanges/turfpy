@@ -13,4 +13,5 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   turfpy.dev_lib.earcut
    turfpy.dev_lib.spline
