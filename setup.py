@@ -44,6 +44,7 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     project_urls={
+        "Documentation": "https://turfpy.readthedocs.io",
         "Source": "https://github.com/omanges/turfpy"
     },
     packages=find_packages(exclude=("tests",)),
