@@ -144,7 +144,7 @@ def area(
     This function calculates the area of the Geojson object given as input.
 
     :param geojson: Geojson object for which area is to be found.
-    :return: area for the given Geojson object.
+    :return: area for the given Geojson object in square meters.
 
     Example:
 

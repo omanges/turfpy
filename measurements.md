@@ -47,7 +47,7 @@ measurement.distance(start,end)
 
 | Return  | Type | Description |
 | ------- | ------ | ----------- |
-| `area`  | float  | Area for the given Geojson object |
+| `area`  | float  | Area for the given Geojson object in square meters |
 
 ```python
 from turfpy.measurement import area
