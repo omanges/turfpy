@@ -1,3 +1,5 @@
+import math
+
 """
 This module will have common utilities.
 """
@@ -125,3 +127,16 @@ def feature_of(feature, ttype, name):
             + ", given "
             + feature["geometry"]["type"]
         )
+
+
+def length_to_degrees(distance, units: str = "km"):
+    """ #TODO: Add description
+    """
+    return radians_to_degrees(length_to_radians(distance, units))
+
+
+def radians_to_degrees(radians: float):
+    """ #TODO: Add description
+    """
+    degrees = radians % (2 * math.pi)
+    return degrees * 180 / math.pi

@@ -7,11 +7,11 @@ link: http://turfjs.org/
 import copy
 import itertools
 import math
-from math import floor
+from math import floor, sqrt
 from typing import List, Union
 
 import numpy as np
-from geojson import Feature, FeatureCollection, LineString
+from geojson import Feature, FeatureCollection, LineString, MultiLineString
 from geojson import Point as GeoPoint
 from geojson import Polygon
 from scipy.spatial import Delaunay
@@ -19,7 +19,7 @@ from shapely import geometry as geometry
 from shapely.geometry import Point, mapping, shape
 from shapely.ops import cascaded_union, polygonize
 
-from turfpy.helper import get_coord, get_geom, get_type
+from turfpy.helper import get_coord, get_geom, get_type, length_to_degrees, get_coords
 from turfpy.measurement import (
     bbox,
     bbox_polygon,
@@ -30,7 +30,7 @@ from turfpy.measurement import (
     rhumb_destination,
     rhumb_distance,
 )
-from turfpy.meta import coord_each, feature_each
+from turfpy.meta import coord_each, feature_each, flatten_each
 
 from .dev_lib.earcut import earcut
 from .dev_lib.spline import Spline
@@ -852,3 +852,141 @@ def __flatten_coords(data):
             hole_index += len(data[i - 1])
             result["holes"].append(hole_index)
     return result
+
+
+def line_offset(geojson: Feature, distance: float, unit: str = "km") -> Feature:
+    """
+    Takes a linestring or multilinestring and returns
+    a line at offset by the specified distance.
+
+    :param geojson: input GeoJSON
+    :param distance: distance to offset the line (can be of negative value)
+    :param unit: Units in which distance to be calculated, values can be 'deg', 'rad',
+        'mi', 'km', default is 'km'
+    :return: Line feature offset from the input line
+
+    Example:
+    >>> from geojson import MultiLineString, Feature
+    >>> from turfpy.transformation import line_offset
+    >>> ls = Feature(geometry=MultiLineString([
+    >>>      [(3.75, 9.25), (-130.95, 1.52)],
+    >>>      [(23.15, -34.25), (-1.35, -4.65), (3.45, 77.95)]
+    >>>  ]))
+    >>> line_offset(ls, 2, unit='mi')
+    """
+    if not geojson:
+        raise Exception("geojson is required")
+
+    if not distance:
+        raise Exception("distance is required")
+
+    type = get_type(geojson)
+    properties = geojson.get("properties", {})
+
+    if type == "LineString":
+        return line_offset_feature(geojson, distance, unit)
+    elif type == "MultiLineString":
+        coords = []
+
+        def callback_flatten_each(feature, feature_index, multi_feature_index):
+            nonlocal coords
+            coords.append(
+                line_offset_feature(feature, distance, unit).geometry.coordinates
+            )
+            return True
+
+        flatten_each(geojson, callback_flatten_each)
+        return Feature(geometry=MultiLineString(coords), properties=properties)
+
+
+def line_offset_feature(line, distance, units):
+    segments = []
+    offset_degrees = length_to_degrees(distance, units)
+    coords = get_coords(line)
+    final_coords = []
+
+    for index, current_coords in enumerate(coords):
+        if index != len(coords) - 1:
+            segment = _process_segment(current_coords, coords[index + 1], offset_degrees)
+            segments.append(segment)
+            if index > 0:
+                seg2_coords = segments[index - 1]
+                intersects = _intersection(segment, seg2_coords)
+
+                if intersects:
+                    seg2_coords[1] = intersects
+                    segment[0] = intersects
+
+                final_coords.append(seg2_coords[0])
+                if index == len(coords) - 2:
+                    final_coords.append(segment[0])
+                    final_coords.append(segment[1])
+
+            if len(coords) == 2:
+                final_coords.append(segment[0])
+                final_coords.append(segment[1])
+
+    return Feature(
+        geometry=LineString(final_coords), properties=line.get("properties", {})
+    )
+
+
+def _process_segment(point1, point2, offset):
+    L = sqrt(
+        (point1[0] - point2[0]) * (point1[0] - point2[0])
+        + (point1[1] - point2[1]) * (point1[1] - point2[1])
+    )
+
+    out1x = point1[0] + offset * (point2[1] - point1[1]) / L
+    out2x = point2[0] + offset * (point2[1] - point1[1]) / L
+    out1y = point1[1] + offset * (point1[0] - point2[0]) / L
+    out2y = point2[1] + offset * (point1[0] - point2[0]) / L
+    return [[out1x, out1y], [out2x, out2y]]
+
+
+def _intersection(a, b):
+    if _is_parallel(a, b):
+        return False
+    return _intersect_segments(a, b)
+
+
+def _is_parallel(a, b):
+    r = _ab(a)
+    s = _ab(b)
+    return _cross_product(r, s) == 0
+
+
+def _ab(segment):
+    start = segment[0]
+    end = segment[1]
+    return [end[0] - start[0], end[1] - start[1]]
+
+
+def _cross_product(v1, v2):
+    return (v1[0] * v2[1]) - (v2[0] * v1[1])
+
+
+def _intersect_segments(a, b):
+    p = a[0]
+    r = _ab(a)
+    q = b[0]
+    s = _ab(b)
+
+    cross = _cross_product(r, s)
+    qmp = _sub(q, p)
+    numerator = _cross_product(qmp, s)
+    t = numerator / cross
+    intersection = _add(p, _scalar_mult(t, r))
+    return intersection
+
+
+def _add(v1, v2):
+    return [v1[0] + v2[0], v1[1] + v2[1]]
+
+
+def _sub(v1, v2):
+    return [v1[0] - v2[0], v1[1] - v2[1]]
+
+
+def _scalar_mult(s, v):
+    return [s * v[0], s * v[1]]
