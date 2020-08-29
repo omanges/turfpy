@@ -312,6 +312,28 @@ polygon = Feature(geometry={"coordinates": [[[11, 0], [22, 4], [31, 0], [31, 11]
 tesselate(polygon)
 ```
 
+* line offset : Takes a linestring or multilinestring and returns a line at offset by the specified distance.
+
+| Argument| Type | Description|
+| -------   |------ | ----------- |
+| `geojson`  | Feature(Line or MultiLineString) | input GeoJSON of Line or MutliLineString |
+| `distance`  | float | distance to offset the line (can be of negative value) |
+| `unit`  | str(Optional) | Unit of distance, default is 'km' refer [Units type](#units-type) section |
+
+| Return  | Type | Description |
+| ------- | ------ | ----------- |
+| `geojson`  | Feature  | Line feature offset from the input line |
+
+```python
+from geojson import MultiLineString, Feature
+from turfpy.transformation import line_offset
+ls = Feature(geometry=MultiLineString([
+     [(3.75, 9.25), (-130.95, 1.52)],
+     [(23.15, -34.25), (-1.35, -4.65), (3.45, 77.95)]
+ ]))
+line_offset(ls, 2, unit='mi')
+```
+
 ## Units Type
 Some functionalities support `units` as a parameter, default values of `units` is `kilometers` for the functionalities that have units are parameters. The values for it are:
 ```text

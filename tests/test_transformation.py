@@ -1,7 +1,14 @@
 """
 Test module for transformations.
 """
-from geojson import Feature, FeatureCollection, LineString, Point, Polygon
+from geojson import (
+    Feature,
+    FeatureCollection,
+    LineString,
+    Point,
+    Polygon,
+    MultiLineString,
+)
 
 from turfpy.transformation import (
     bbox_clip,
@@ -17,6 +24,7 @@ from turfpy.transformation import (
     transform_scale,
     transform_translate,
     union,
+    line_offset,
 )
 
 
@@ -363,3 +371,23 @@ def test_tesselate():
             },
         ],
     }
+
+
+def test_line_offset():
+    ls = Feature(
+        geometry=MultiLineString(
+            [
+                [(3.75, 9.25), (-130.95, 1.52)],
+                [(23.15, -34.25), (-1.35, -4.65), (3.45, 77.95)],
+            ]
+        )
+    )
+
+    lined_off = line_offset(ls, 2, unit="mi")
+
+    assert lined_off["type"] == "Feature"
+    assert len(lined_off["geometry"]["coordinates"]) == 2
+    assert lined_off["geometry"]["coordinates"] == [
+        [[3.748342, 9.278899], [-130.951658, 1.548899]],
+        [[23.172299, -34.231543], [-1.320442, -4.640314], [3.478898, 77.948321]],
+    ]
