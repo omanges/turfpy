@@ -1513,3 +1513,5 @@ def test_voronoi():
         "properties": {},
         "type": "Feature",
     }
+    result2 = voronoi(points)
+    assert result2["type"] == "Feature"

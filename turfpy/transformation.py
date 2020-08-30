@@ -8,7 +8,7 @@ import copy
 import itertools
 import math
 from math import floor, sqrt
-from typing import List, Union
+from typing import List, Optional, Union
 
 import numpy as np
 from geojson import Feature, FeatureCollection, LineString, MultiLineString
@@ -999,7 +999,9 @@ def _scalar_mult(s, v):
     return [s * v[0], s * v[1]]
 
 
-def voronoi(points: Union[FeatureCollection, List], bbox: list) -> Feature:
+def voronoi(
+    points: Union[FeatureCollection, List], bbox: Optional[list] = None
+) -> Feature:
     """Takes a FeatureCollection of points, and a bounding box,
     and returns a FeatureCollection of Voronoi polygons.
 
@@ -1007,8 +1009,23 @@ def voronoi(points: Union[FeatureCollection, List], bbox: list) -> Feature:
         FeatureCollection of points or list of points.
     :param bbox: A bounding box to clip.
     :return: A GeoJSON Feature.
+
+    Example:
+    >>> from turfpy.transformation import voronoi
+
+    >>> points = [
+    ... [-66.9703, 40.3183],
+    ... [-63.7763, 40.4500],
+    ... [-65.4196, 42.13985310302137],
+    ... [-69.5813, 43.95405461286195],
+    ... [-65.66337553550034, 55.97088945355232],
+    ... [-60.280418548905, 56.240669185466146],
+    ... [-68.5129561347689, 50.12984589640148],
+    ... [-64.2393519226657, 59.66235385923687],
+    ... ]
+    >>> bbox = [-70, 40, -60, 60]
+    >>> voronoi(points, bbox)
     """
-    w, s, e, n = bbox
     if isinstance(points, FeatureCollection):
         coords = []
         for feature in points["features"]:
@@ -1032,5 +1049,8 @@ def voronoi(points: Union[FeatureCollection, List], bbox: list) -> Feature:
     result = MultiPolygon(
         [p for p in result] + [p for p in convex_hull.difference(unary_union(result))]
     )
-    cliped_result = clip_by_rect(result, w, s, e, n)
-    return Feature(geometry=cliped_result)
+    if bbox is not None:
+        w, s, e, n = bbox
+        cliped_result = clip_by_rect(result, w, s, e, n)
+        return Feature(geometry=cliped_result)
+    return Feature(geometry=result)
