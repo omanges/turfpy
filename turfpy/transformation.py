@@ -14,12 +14,13 @@ import numpy as np
 from geojson import Feature, FeatureCollection, LineString, MultiLineString
 from geojson import Point as GeoPoint
 from geojson import Polygon
-from scipy.spatial import Delaunay
+from scipy.spatial import Delaunay, Voronoi
 from shapely import geometry as geometry
-from shapely.geometry import Point, mapping, shape
-from shapely.ops import cascaded_union, polygonize
+from shapely.geometry import LineString as ShapelyLineString
+from shapely.geometry import MultiPoint, MultiPolygon, Point, mapping, shape
+from shapely.ops import cascaded_union, clip_by_rect, polygonize, unary_union
 
-from turfpy.helper import get_coord, get_geom, get_type, length_to_degrees, get_coords
+from turfpy.helper import get_coord, get_coords, get_geom, get_type, length_to_degrees
 from turfpy.measurement import (
     bbox,
     bbox_polygon,
@@ -563,8 +564,9 @@ def transform_rotate(
     """
     Rotates any geojson Feature or Geometry of a specified angle,
     around its centroid or a given pivot
-    point; all rotations follow the right-hand rule
-    :param feature: Geojson to be rotated
+    point; all rotations follow the right-hand rule.
+
+    :param feature: Geojson to be rotated.
     :param angle: angle of rotation (along the vertical axis),
         from North in decimal degrees, negative clockwise
     :param pivot: point around which the rotation will be performed
@@ -620,6 +622,7 @@ def transform_translate(
     Moves any geojson Feature or Geometry
     of a specified distance along a
     Rhumb Line on the provided direction angle.
+
     :param feature: Geojson data that is to be translated
     :param distance: length of the motion;
         negative values determine motion in opposite direction
@@ -683,6 +686,7 @@ def transform_scale(
     (ex: factor=2 would make the GeoJSON 200% larger).
     If a FeatureCollection is provided, the origin
     point will be calculated based on each individual Feature.
+    
     :param features: GeoJSON to be scaled
     :param factor: of scaling, positive or negative values greater than 0
     :param origin: Point from which the scaling will occur
@@ -990,3 +994,40 @@ def _sub(v1, v2):
 
 def _scalar_mult(s, v):
     return [s * v[0], s * v[1]]
+
+
+def voronoi(points: Union[FeatureCollection, List], bbox: list) -> Feature:
+    """Takes a FeatureCollection of points, and a bounding box,
+    and returns a FeatureCollection of Voronoi polygons.
+
+    :param points: To find the Voronoi polygons around. Points should be either
+        FeatureCollection of points or list of points.
+    :param bbox: A bounding box to clip.
+    :return: A GeoJSON Feature.
+    """
+    w, s, e, n = bbox
+    if isinstance(points, FeatureCollection):
+        coords = []
+        for feature in points["features"]:
+            coords.append(feature["features"][0]["geometry"]["coordinates"])
+        points = np.array(coords)
+    elif isinstance(points, list):
+        points = np.array(points)
+    else:
+        raise ValueError(
+            "points should be either FeatureCollection of points of List of Points"
+        )
+    vor = Voronoi(points)
+    lines = [
+        ShapelyLineString(vor.vertices[line])
+        for line in vor.ridge_vertices
+        if -1 not in line
+    ]
+
+    convex_hull = MultiPoint([Point(i) for i in points]).convex_hull.buffer(2)
+    result = MultiPolygon([poly.intersection(convex_hull) for poly in polygonize(lines)])
+    result = MultiPolygon(
+        [p for p in result] + [p for p in convex_hull.difference(unary_union(result))]
+    )
+    cliped_result = clip_by_rect(result, w, s, e, n)
+    return Feature(geometry=cliped_result)
