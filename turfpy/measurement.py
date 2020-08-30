@@ -74,8 +74,7 @@ def bearing(start: Feature, end: Feature, final=False) -> float:
 
 
 def _calculate_final_bearing(start, end) -> float:
-    """ #TODO: Add description
-    """
+    """#TODO: Add description"""
     bear = bearing(end, start)
     bear = (bear + 180) % 360
     return bear
@@ -802,7 +801,11 @@ def explode(geojson):
 
         def _callback_feature_each(feature, feature_index):
             def _callback_coord_each(
-                coord, coord_index, feature_index, multi_feature_index, geometry_index,
+                coord,
+                coord_index,
+                feature_index,
+                multi_feature_index,
+                geometry_index,
             ):
                 nonlocal points
                 point = Point(coord)
@@ -814,7 +817,11 @@ def explode(geojson):
     else:
 
         def _callback_coord_each(
-            coord, coord_index, feature_index, multi_feature_index, geometry_index,
+            coord,
+            coord_index,
+            feature_index,
+            multi_feature_index,
+            geometry_index,
         ):
             nonlocal points, geojson
             point = Point(coord)
@@ -871,7 +878,9 @@ def polygon_tangents(point, polygon):
                 ltan = poly_coords[0][nearest_pt_index]
 
         eprev = _is_left(
-            poly_coords[0][0], poly_coords[0][len(poly_coords[0]) - 1], point_coords,
+            poly_coords[0][0],
+            poly_coords[0][len(poly_coords[0]) - 1],
+            point_coords,
         )
         out = process_polygon(poly_coords[0], point_coords, eprev, enext, rtan, ltan)
         rtan = out[0]
@@ -1081,8 +1090,7 @@ def rhumb_bearing(start, end, final=False):
 
 
 def calculate_rhumb_bearing(fro, to):
-    """ #TODO: Add description
-    """
+    """#TODO: Add description"""
     phi1 = radians(fro[1])
     phi2 = radians(to[1])
     delta_lambda = radians(to[0] - fro[0])
@@ -1135,7 +1143,8 @@ def rhumb_destination(origin, distance, bearing, options: dict = {}) -> Feature:
     coords = get_coord(origin)
     destination_point = _calculate_rhumb_destination(coords, distance_in_meters, bearing)
     return Feature(
-        geometry=Point(destination_point), properties=options.get("properties", ""),
+        geometry=Point(destination_point),
+        properties=options.get("properties", ""),
     )
 
 

@@ -334,6 +334,34 @@ ls = Feature(geometry=MultiLineString([
 line_offset(ls, 2, unit='mi')
 ```
 
+* voronoi : Takes a FeatureCollection of points, and a bounding box, and returns a FeatureCollection of Voronoi polygons.
+
+| Argument| Type | Description|
+| -------   |------ | ----------- |
+| `points`  | FeatureCollection or List of Points | points to find the Voronoi polygons around.|
+| `bbox`  | list | A bounding box to clip |
+
+| Return  | Type | Description |
+| ------- | ------ | ----------- |
+| `geojson`  | Feature  | A GeoJSON Feature. |
+
+```python
+from turfpy.transformation import voronoi
+
+points = [
+    [-66.9703, 40.3183],
+    [-63.7763, 40.4500],
+    [-65.4196, 42.13985310302137],
+    [-69.5813, 43.95405461286195],
+    [-65.66337553550034, 55.97088945355232],
+    [-60.280418548905, 56.240669185466146],
+    [-68.5129561347689, 50.12984589640148],
+    [-64.2393519226657, 59.66235385923687],
+]
+bbox = [-70, 40, -60, 60]
+result = voronoi(points, bbox)
+```
+
 ## Units Type
 Some functionalities support `units` as a parameter, default values of `units` is `kilometers` for the functionalities that have units are parameters. The values for it are:
 ```text
