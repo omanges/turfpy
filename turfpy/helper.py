@@ -20,16 +20,14 @@ conversions = {
 
 
 def convert_length(length, original_unit: str = "km", final_unit: str = "km"):
-    """ #TODO: Add description
-    """
+    """#TODO: Add description"""
     if length < 0:
         raise Exception("length must be a positive number")
     return radians_to_length(length_to_radians(length, original_unit), final_unit)
 
 
 def length_to_radians(distance, unit: str = "km"):
-    """ #TODO: Add description
-    """
+    """#TODO: Add description"""
     if unit not in conversions:
         raise Exception(f"{unit} unit is invalid")
     b = distance / (conversions[unit] * avg_earth_radius_km)
@@ -37,8 +35,7 @@ def length_to_radians(distance, unit: str = "km"):
 
 
 def radians_to_length(radians, unit: str = "km"):
-    """ #TODO: Add description
-    """
+    """#TODO: Add description"""
     if unit not in conversions:
         raise Exception(f"{unit} unit is invalid")
     b = radians * conversions[unit] * avg_earth_radius_km
@@ -46,8 +43,7 @@ def radians_to_length(radians, unit: str = "km"):
 
 
 def get_type(geojson):
-    """ #TODO: Add description
-    """
+    """#TODO: Add description"""
     if geojson["type"] == "FeatureCollection":
         return "FeatureCollection"
     if geojson["type"] == "GeometryCollection":
@@ -58,8 +54,7 @@ def get_type(geojson):
 
 
 def get_coord(coord):
-    """ #TODO: Add description
-    """
+    """#TODO: Add description"""
     if not coord:
         raise Exception("coord is required")
 
@@ -82,16 +77,14 @@ def get_coord(coord):
 
 
 def get_geom(geojson):
-    """ #TODO: Add description
-    """
+    """#TODO: Add description"""
     if geojson["type"] == "Feature":
         return geojson["geometry"]
     return geojson
 
 
 def get_coords(coords):
-    """ #TODO: Add description
-    """
+    """#TODO: Add description"""
     if isinstance(coords, list):
         return coords
 
@@ -105,8 +98,7 @@ def get_coords(coords):
 
 
 def feature_of(feature, ttype, name):
-    """ #TODO: Add description
-    """
+    """#TODO: Add description"""
     if not feature:
         raise Exception("No feature passed")
 
@@ -130,13 +122,11 @@ def feature_of(feature, ttype, name):
 
 
 def length_to_degrees(distance, units: str = "km"):
-    """ #TODO: Add description
-    """
+    """#TODO: Add description"""
     return radians_to_degrees(length_to_radians(distance, units))
 
 
 def radians_to_degrees(radians: float):
-    """ #TODO: Add description
-    """
+    """#TODO: Add description"""
     degrees = radians % (2 * math.pi)
     return degrees * 180 / math.pi

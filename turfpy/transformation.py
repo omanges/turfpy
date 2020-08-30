@@ -678,7 +678,10 @@ def transform_translate(
 
 
 def transform_scale(
-    features, factor: float, origin: Union[str, list] = "centroid", mutate: bool = False,
+    features,
+    factor: float,
+    origin: Union[str, list] = "centroid",
+    mutate: bool = False,
 ):
     """
     Scale a GeoJSON from a given
@@ -686,7 +689,7 @@ def transform_scale(
     (ex: factor=2 would make the GeoJSON 200% larger).
     If a FeatureCollection is provided, the origin
     point will be calculated based on each individual Feature.
-    
+
     :param features: GeoJSON to be scaled
     :param factor: of scaling, positive or negative values greater than 0
     :param origin: Point from which the scaling will occur
