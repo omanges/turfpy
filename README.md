@@ -35,7 +35,7 @@ If you prefer to use [conda](https://anaconda.org/conda-forge/turfpy):
 You can run the test suite locally:
 
 ```bash
-pip install -r dev_requirements
+pip install -r dev_requirements.txt
 pytest -s -v --cov=turfpy tests
 ```
 
