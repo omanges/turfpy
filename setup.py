@@ -27,7 +27,7 @@ with open(path.join(HERE, "README.md")) as fid:
 setup(
     name="turfpy",
     version=__version__,
-    description="This is Python library for performing geo spatial data analysis.",
+    description="A Python library for performing geospatial data analysis.",
     long_description=README,
     long_description_content_type="text/markdown",
     # download_url=download_url,

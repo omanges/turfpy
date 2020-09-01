@@ -15,7 +15,7 @@ Demo:
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omanges/turfpy/master)
 
 
-This is Python library for performing geo spatial data analysis. This is an python alternative for turf.js.
+A Python library for performing geospatial data analysis. This is an python alternative for turf.js.
 
 ## Installation
 
