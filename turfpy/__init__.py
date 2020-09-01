@@ -1,2 +1,2 @@
-"""This is Python library for performing geo spatial data analysis.
+"""A Python library for performing geospatial data analysis which reimplements turf.js
 """
