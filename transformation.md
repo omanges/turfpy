@@ -39,7 +39,7 @@ bbox = [0, 0, 10, 10]
 clip = bbox_clip(f, bbox)
 ```
 
-* bezie_spline : Takes a line and returns a curved version by applying a Bezier spline algorithm.
+* bezier_spline : Takes a line and returns a curved version by applying a Bezier spline algorithm.
 
 | Argument| Type | Description|
 | -------   |------ | ----------- |
@@ -53,7 +53,7 @@ clip = bbox_clip(f, bbox)
 
 ```python
 from geojson import LineString, Feature
-from turfpy.transformation import bezie_spline
+from turfpy.transformation import bezier_spline
 ls = LineString([(-76.091308, 18.427501),
                     (-76.695556, 18.729501),
                     (-76.552734, 19.40443),
@@ -61,7 +61,7 @@ ls = LineString([(-76.091308, 18.427501),
                     (-73.652343, 20.07657),
                     (-73.157958, 20.210656)])
 f = Feature(geometry=ls)
-bezie_spline(f)
+bezier_spline(f)
 ```
 
 * concave : Generate concave hull for the given feature or Feature Collection.

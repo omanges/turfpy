@@ -167,7 +167,7 @@ def intersect(features: Union[List[Feature], FeatureCollection]) -> Feature:
     return intersection_feature
 
 
-def bezie_spline(line: Feature, resolution=10000, sharpness=0.85) -> Feature:
+def bezier_spline(line: Feature, resolution=10000, sharpness=0.85) -> Feature:
     """
     Takes a line and returns a curved version by applying a Bezier spline algorithm
     :param line: LineString Feature which is used to draw the curve
@@ -178,7 +178,7 @@ def bezie_spline(line: Feature, resolution=10000, sharpness=0.85) -> Feature:
     Example:
 
     >>> from geojson import LineString, Feature
-    >>> from turfpy.transformation import bezie_spline
+    >>> from turfpy.transformation import bezier_spline
     >>> ls = LineString([(-76.091308, 18.427501),
     >>>                     (-76.695556, 18.729501),
     >>>                     (-76.552734, 19.40443),
@@ -186,7 +186,7 @@ def bezie_spline(line: Feature, resolution=10000, sharpness=0.85) -> Feature:
     >>>                     (-73.652343, 20.07657),
     >>>                     (-73.157958, 20.210656)])
     >>> f = Feature(geometry=ls)
-    >>> bezie_spline(f)
+    >>> bezier_spline(f)
     """
     coords = []
     points = []
@@ -678,10 +678,7 @@ def transform_translate(
 
 
 def transform_scale(
-    features,
-    factor: float,
-    origin: Union[str, list] = "centroid",
-    mutate: bool = False,
+    features, factor: float, origin: Union[str, list] = "centroid", mutate: bool = False,
 ):
     """
     Scale a GeoJSON from a given

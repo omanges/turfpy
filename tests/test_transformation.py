@@ -12,7 +12,7 @@ from geojson import (
 
 from turfpy.transformation import (
     bbox_clip,
-    bezie_spline,
+    bezier_spline,
     circle,
     concave,
     convex,
@@ -125,7 +125,7 @@ def test_intersection():
     ]
 
 
-def test_bezie_spline():
+def test_bezier_spline():
     ls = LineString(
         [
             (-76.091308, 18.427501),
@@ -139,7 +139,7 @@ def test_bezie_spline():
 
     f = Feature(geometry=ls)
 
-    bf = bezie_spline(f)
+    bf = bezier_spline(f)
     bf = bf["geometry"]
     assert bf.type == "LineString"
     assert len(bf.coordinates) == 500
