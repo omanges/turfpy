@@ -17,7 +17,7 @@
 
 Demo:
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omanges/turfpy/master)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omanges/turfpy/master?urlpath=lab/tree/examples)
 
 
 A Python library for performing geospatial data analysis which reimplements turf.js.

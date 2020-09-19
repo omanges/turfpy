@@ -1,0 +1,8 @@
+jupyter labextension install \
+  @jupyter-widgets/jupyterlab-manager \
+  jupyter-leaflet \
+
+# Notebooks with extensions that auto-run code must be "trusted" to work the first time
+jupyter trust examples/*.ipynb
+
+jupyter lab build --dev-build=False --minimize=False
