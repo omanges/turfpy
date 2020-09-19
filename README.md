@@ -7,6 +7,8 @@
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/omanges/turfpy.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/omanges/turfpy/alerts/)
 [![code quality: python](https://img.shields.io/lgtm/grade/python/g/omanges/turfpy.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/omanges/turfpy/context:python)
 [![Downloads](https://pepy.tech/badge/turfpy/month)](https://pepy.tech/project/turfpy/month)
+[![Conda (channel only)](https://img.shields.io/conda/vn/conda-forge/turfpy)](https://anaconda.org/conda-forge/turfpy)
+[![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/turfpy)](https://anaconda.org/conda-forge/turfpy)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/turfpy/turfpy-user-group?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Documentation Status](https://readthedocs.org/projects/turfpy/badge/?version=latest)](https://turfpy.readthedocs.io/en/latest/?badge=latest)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -15,7 +17,7 @@
 
 Demo:
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omanges/turfpy/master)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/omanges/turfpy/master?urlpath=lab/tree/examples)
 
 
 A Python library for performing geospatial data analysis which reimplements turf.js.
