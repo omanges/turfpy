@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-export DEST=docs/
-rm -f $DEST/*.rst
+export DEST=docs/source
+#rm -f $DEST/*.rst
 rm -rf $DEST/_build
 rm -rf $DEST/_static
 rm -rf $DEST/_templates
@@ -10,7 +10,6 @@ rm -rf $DEST/_templates
 
 #sphinx-quickstart --quiet --author 'Omkar Mestry, Sachin Kharude' --project turfpy \
 #	--ext-coverage --ext-autodoc --ext-viewcode --ext-doctest \
-#	--extensions sphinx_autodoc_typehints \
 #	$DEST
 
 sphinx-apidoc --private --separate --module-first --full -o $DEST turfpy
