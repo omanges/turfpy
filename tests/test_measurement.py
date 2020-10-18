@@ -84,7 +84,14 @@ def test_bbox_multi_polygon():
     mp = MultiPolygon(
         [
             ([(3.78, 9.28), (-130.91, 1.52), (35.12, 72.234), (3.78, 9.28)],),
-            ([(23.18, -34.29), (-1.31, -4.61), (3.41, 77.91), (23.18, -34.29),],),
+            (
+                [
+                    (23.18, -34.29),
+                    (-1.31, -4.61),
+                    (3.41, 77.91),
+                    (23.18, -34.29),
+                ],
+            ),
         ]
     )
     bb = bbox(mp)
@@ -171,7 +178,10 @@ def test_rhumb_destination():
     distance = 50
     bearing = 90
     dest = rhumb_destination(
-        start, distance, bearing, {"units": "mi", "properties": {"marker-color": "F00"}},
+        start,
+        distance,
+        bearing,
+        {"units": "mi", "properties": {"marker-color": "F00"}},
     )
     assert dest["geometry"]["coordinates"] == [-74.398553, 39.984]
 
