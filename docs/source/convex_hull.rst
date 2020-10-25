@@ -1,7 +1,7 @@
-Concave Hull
-============
+Convex Hull
+===========
 
-Generate concave hull for the given feature or Feature Collection.
+
 
 Example
 -------
@@ -9,7 +9,7 @@ Example
 .. jupyter-execute::
 
     import json
-    from turfpy.transformation import concave
+    from turfpy.transformation import convex
     from geojson import FeatureCollection, Feature, Point
     f1 = Feature(geometry=Point((-63.601226, 44.642643)))
     f2 = Feature(geometry=Point((-63.591442, 44.651436)))
@@ -18,9 +18,8 @@ Example
     f5 = Feature(geometry=Point((-63.587665, 44.64533)))
     f6 = Feature(geometry=Point((-63.595218, 44.64765)))
     fc = [f1, f2, f3, f4, f5, f6]
-    ch = concave(FeatureCollection(fc), alpha=100)
+    ch = convex(FeatureCollection(fc))
     print(json.dumps(ch, indent=2, sort_keys=True))
-
 
 
 Interactive Example
@@ -30,7 +29,7 @@ Interactive Example
 
     from geojson import FeatureCollection, Feature, Point
     from ipyleaflet import Map, GeoJSON
-    from turfpy.transformation import concave
+    from turfpy.transformation import convex
 
     f1 = Feature(geometry=Point((-63.601226, 44.642643)))
     f2 = Feature(geometry=Point((-63.591442, 44.651436)))
@@ -43,7 +42,7 @@ Interactive Example
 
     geo_json = GeoJSON(data=fc)
 
-    spline_geo_json = GeoJSON(data=concave(FeatureCollection(fc), alpha=100), style={'color': 'red'})
+    spline_geo_json = GeoJSON(data=convex(FeatureCollection(fc)), style={'color': 'red'})
 
     m = Map(center=[44.64740465397292, -63.58361206948757], zoom=14)
 
@@ -51,3 +50,4 @@ Interactive Example
     m.add_layer(spline_geo_json)
 
     m
+
