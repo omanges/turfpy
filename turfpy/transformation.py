@@ -665,7 +665,7 @@ def transform_translate(
     ):
         nonlocal distance, direction, units, z_translation
         new_coords = get_coord(
-            rhumb_destination(GeoPoint(coord), distance, direction, {units: units})
+            rhumb_destination(GeoPoint(coord), distance, direction, {"units": units})
         )
         coord[0] = new_coords[0]
         coord[1] = new_coords[1]
