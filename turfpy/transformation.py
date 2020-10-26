@@ -807,6 +807,7 @@ def tesselate(poly: Feature) -> FeatureCollection:
     :return: A GeoJSON FeatureCollection of triangular polygons.
 
     Example:
+
     >>> from geojson import Feature
     >>> from turfpy.transformation import tesselate
     >>> polygon = Feature(geometry={"coordinates": [[[11, 0], [22, 4], [31, 0], [31, 11],
@@ -873,12 +874,13 @@ def line_offset(geojson: Feature, distance: float, unit: str = "km") -> Feature:
     :return: Line feature offset from the input line
 
     Example:
+
     >>> from geojson import MultiLineString, Feature
     >>> from turfpy.transformation import line_offset
     >>> ls = Feature(geometry=MultiLineString([
-    >>>      [(3.75, 9.25), (-130.95, 1.52)],
-    >>>      [(23.15, -34.25), (-1.35, -4.65), (3.45, 77.95)]
-    >>>  ]))
+    ... [(3.75, 9.25), (-130.95, 1.52)],
+    ... [(23.15, -34.25), (-1.35, -4.65), (3.45, 77.95)]
+    ... ]))
     >>> line_offset(ls, 2, unit='mi')
     """
     if not geojson:
@@ -1011,8 +1013,8 @@ def voronoi(
     :return: A GeoJSON Feature.
 
     Example:
-    >>> from turfpy.transformation import voronoi
 
+    >>> from turfpy.transformation import voronoi
     >>> points = [
     ... [-66.9703, 40.3183],
     ... [-63.7763, 40.4500],

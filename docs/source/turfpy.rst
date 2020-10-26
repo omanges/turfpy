@@ -26,3 +26,4 @@ Submodules
    turfpy.measurement
    turfpy.meta
    turfpy.transformation
+   turfpy.__version__
