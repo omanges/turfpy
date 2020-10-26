@@ -10,9 +10,13 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
+import os
+import sys
+import sphinx_rtd_theme
 # sys.path.insert(0, os.path.abspath('.'))
+current_dir = os.path.dirname(__file__)
+target_dir = os.path.abspath(os.path.join(current_dir, "../.."))
+sys.path.insert(0, target_dir)
 
 
 # -- Project information -----------------------------------------------------
@@ -32,11 +36,16 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.doctest',
-    'sphinx.ext.autodoc.typehints',
+    'jupyter_sphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
+
+
+def setup(app):
+    app.add_css_file("main_stylesheet.css")
+
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -49,21 +58,22 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+# html_theme = 'alabaster'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+highlight_language = 'python'
+pygments_style = 'sphinx'
 
-master_doc = 'index'
+# Output file base name for HTML help builder.
+html_theme = "sphinx_rtd_theme"
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+htmlhelp_basename = 'turfpydoc'
 
 
 # -- Extension configuration -------------------------------------------------
-
-
-# -- Options for todo extension ----------------------------------------------
-
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 autodoc_typehints = "description"
