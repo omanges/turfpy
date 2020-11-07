@@ -3,5 +3,3 @@ geojson
 shapely
 scipy
 numpy
-geopandas
-Rtree

@@ -1,20 +1,20 @@
 from functools import reduce
-from typing import Union, List
+from typing import List, Union
 
-import geopandas
 from geojson import (
     Feature,
+    FeatureCollection,
     LineString,
     MultiLineString,
-    Polygon,
     MultiPolygon,
-    FeatureCollection,
+    Polygon,
 )
-from shapely.geometry import shape, mapping
+from shapely.geometry import mapping, shape
 
-from turfpy.transformation import intersect
+import turfpy._compact as compat
 from turfpy.helper import get_coords
 from turfpy.meta import flatten_each
+from turfpy.transformation import intersect
 
 
 def line_intersect(
@@ -24,10 +24,10 @@ def line_intersect(
     """
     Takes any LineString or Polygon GeoJSON and returns the intersecting point(s).
     If one of the Features is polygon pass the polygon feature as the first
-    parameter to improve performance. To use this functionality Rtree is needed
-    to be installed.
+    parameter to improve performance. To use this functionality Rtree or pygeos
+    is needed to be installed.
 
-    Rtree :- https://pypi.org/project/Rtree/
+    See installation instructions at https://geopandas.org/install.html
 
     :param feature1: Any LineString or Polygon, if one of the two features is
         polygon to improve performance please pass polygon as this parameter.
@@ -41,6 +41,14 @@ def line_intersect(
     >>> l2 = Feature(geometry=LineString([[123, -18], [131, -14]]))
     >>> line_intersect(l1, l2)
     """
+    if not compat.HAS_GEOPANDAS or not compat.HAS_PYGEOS:
+        raise ImportError(
+            "line_intersect requires `Spatial indexes` for which it "
+            "requires `geopandas` and either `rtree` or `pygeos`. "
+            "See installation instructions at https://geopandas.org/install.html"
+        )
+    import geopandas  # noqa
+
     unique = set()
     results: List[Feature] = []
     f1 = feature1

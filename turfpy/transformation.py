@@ -678,7 +678,10 @@ def transform_translate(
 
 
 def transform_scale(
-    features, factor: float, origin: Union[str, list] = "centroid", mutate: bool = False,
+    features,
+    factor: float,
+    origin: Union[str, list] = "centroid",
+    mutate: bool = False,
 ):
     """
     Scale a GeoJSON from a given

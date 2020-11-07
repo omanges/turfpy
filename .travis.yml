@@ -4,9 +4,6 @@ python:
 - '3.7'
 - '3.8'
 install:
-- sudo apt-get update -y
-- sudo apt-get install -y libspatialindex-dev
-- pip install pyproj==1.9.6
 - pip install tox-travis
 script:
 - travis_wait 30 tox
