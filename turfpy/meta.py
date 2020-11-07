@@ -10,11 +10,7 @@ def geom_reduce(geojson, initial_value_param):
     previous_value = initial_value_param
 
     def callback_geom_each(
-        current_geometry,
-        feature_index,
-        feature_properties,
-        feature_bbox,
-        feature_id,
+        current_geometry, feature_index, feature_properties, feature_bbox, feature_id,
     ):
         nonlocal initial_value
         nonlocal previous_value
@@ -81,11 +77,7 @@ def geom_each(geojson, callback):
 
             if not geometry:
                 if not callback(
-                    None,
-                    feature_index,
-                    feature_properties,
-                    feature_b_box,
-                    feature_id,
+                    None, feature_index, feature_properties, feature_b_box, feature_id,
                 ):
                     return False
                 continue
@@ -305,9 +297,7 @@ def coord_each(geojson, callback, excludeWrapCoord=None):
                 elif geom_type == "GeometryCollection":
                     for j in range(0, len(geometry["geometries"])):
                         if not coord_each(
-                            geometry["geometries"][j],
-                            callback,
-                            excludeWrapCoord,
+                            geometry["geometries"][j], callback, excludeWrapCoord,
                         ):
                             return False
                 else:

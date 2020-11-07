@@ -48,6 +48,8 @@ It supports below features:
 
 - [Transformations](https://github.com/omanges/turfpy/blob/master/transformation.md)
 
+- [Misc](https://github.com/omanges/turfpy/blob/master/misc.md)
+
 ## Documentation
 
 Documentation can be found at: [docs](https://turfpy.readthedocs.io/en/latest/)
