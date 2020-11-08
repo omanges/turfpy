@@ -20,48 +20,56 @@ A Python library for performing geospatial data analysis which reimplements `tur
   :maxdepth: 1
   :caption: Measurements
 
-  Bearing <bearing>
-  Distance <distance>
-  Area  <area>
-  Bbox <bbox>
-  Bbox Polygon <bbox_polygon>
-  Center <center>
-  Envelop <envelop>
-  Length <length>
-  Destination <destination>
-  Centroid <centroid>
-  Along <along>
-  Midpoint <midpoint>
-  Nearest Point <nearest_point>
-  Point On Feature <point_on_feature>
-  Point In Polygon <point_in_polygon>
-  Point To Line Distance <point_to_line_distance>
-  Rhumb Bearing <rhumb_bearing>
-  Rhumb Destination <rhumb_destination>
-  Rhumb Distance <rhumb_distance>
-  Square <square>
-  Points within Polygon <points_within_polygon>
+  Bearing <measurements/bearing>
+  Distance <measurements/distance>
+  Area  <measurements/area>
+  Bbox <measurements/bbox>
+  Bbox Polygon <measurements/bbox_polygon>
+  Center <measurements/center>
+  Envelop <measurements/envelop>
+  Length <measurements/length>
+  Destination <measurements/destination>
+  Centroid <measurements/centroid>
+  Along <measurements/along>
+  Midpoint <measurements/midpoint>
+  Nearest Point <measurements/nearest_point>
+  Point On Feature <measurements/point_on_feature>
+  Point In Polygon <measurements/point_in_polygon>
+  Point To Line Distance <measurements/point_to_line_distance>
+  Rhumb Bearing <measurements/rhumb_bearing>
+  Rhumb Destination <measurements/rhumb_destination>
+  Rhumb Distance <measurements/rhumb_distance>
+  Square <measurements/square>
+  Points within Polygon <measurements/points_within_polygon>
 
 
 .. toctree::
   :maxdepth: 1
   :caption: Transformations
 
-  Circle <circle>
-  Bbox Clip <bbox_clip>
-  Bezier spline <bezier_spline>
-  Concave Hull <concave_hull>
-  Convex Hull <convex_hull>
-  Intersect <intersect>
-  Union <union>
-  Dissolve <dissolve>
-  Difference <difference>
-  Transform Rotate <transform_rotate>
-  Transform Translate <transform_translate>
-  Transform Scale <transform_scale>
-  Tesselate <tesselate>
-  Line Offset <line_offset>
-  Voronoi <voronoi>
+  Circle <transformations/circle>
+  Bbox Clip <transformations/bbox_clip>
+  Bezier spline <transformations/bezier_spline>
+  Concave Hull <transformations/concave_hull>
+  Convex Hull <transformations/convex_hull>
+  Intersect <transformations/intersect>
+  Union <transformations/union>
+  Dissolve <transformations/dissolve>
+  Difference <transformations/difference>
+  Transform Rotate <transformations/transform_rotate>
+  Transform Translate <transformations/transform_translate>
+  Transform Scale <transformations/transform_scale>
+  Tesselate <transformations/tesselate>
+  Line Offset <transformations/line_offset>
+  Voronoi <transformations/voronoi>
+
+
+.. toctree::
+  :maxdepth: 1
+  :caption: Misc
+
+   Line Intersect <misc/line_intersect>
+   Line Segment <misc/line_segment>
 
 
 .. toctree::
