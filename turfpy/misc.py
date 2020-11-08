@@ -1,3 +1,8 @@
+"""
+This module implements some of the spatial analysis techniques and processes used to
+analyse geojson linestring. This is mainly inspired by turf.js Misc section.
+link: http://turfjs.org/
+"""
 from functools import reduce
 from typing import List, Union
 
@@ -41,7 +46,13 @@ def line_intersect(
     >>> l2 = Feature(geometry=LineString([[123, -18], [131, -14]]))
     >>> line_intersect(l1, l2)
     """
-    if not compat.HAS_GEOPANDAS or not compat.HAS_PYGEOS:
+    if not compat.HAS_GEOPANDAS:
+        raise ImportError(
+            "line_intersect requires `Spatial indexes` for which it "
+            "requires `geopandas` and either `rtree` or `pygeos`. "
+            "See installation instructions at https://geopandas.org/install.html"
+        )
+    elif not compat.HAS_PYGEOS and not compat.HAS_RTREE:
         raise ImportError(
             "line_intersect requires `Spatial indexes` for which it "
             "requires `geopandas` and either `rtree` or `pygeos`. "
@@ -107,33 +118,33 @@ def line_segment(
     >>> from turfpy.misc import line_segment
     >>>
     >>> poly = {
-    >>>       "type": "Feature",
-    >>>       "properties": {},
-    >>>       "geometry": {
-    >>>         "type": "Polygon",
-    >>>         "coordinates": [
-    >>>           [
-    >>>             [
-    >>>               51.17431640625,
-    >>>               47.025206001585396
-    >>>             ],
-    >>>             [
-    >>>               45.17578125,
-    >>>               43.13306116240612
-    >>>             ],
-    >>>             [
-    >>>               54.5361328125,
-    >>>               41.85319643776675
-    >>>             ],
-    >>>             [
-    >>>               51.17431640625,
-    >>>               47.025206001585396
-    >>>             ]
-    >>>           ]
-    >>>         ]
-    >>>       }
-    >>> }
-    >>>
+    ...       "type": "Feature",
+    ...       "properties": {},
+    ...       "geometry": {
+    ...         "type": "Polygon",
+    ...         "coordinates": [
+    ...           [
+    ...             [
+    ...               51.17431640625,
+    ...               47.025206001585396
+    ...             ],
+    ...             [
+    ...               45.17578125,
+    ...               43.13306116240612
+    ...             ],
+    ...             [
+    ...               54.5361328125,
+    ...               41.85319643776675
+    ...             ],
+    ...             [
+    ...               51.17431640625,
+    ...               47.025206001585396
+    ...             ]
+    ...           ]
+    ...         ]
+    ...       }
+    ... }
+    ...
     >>> line_segment(poly)
     """
     if not geojson:
@@ -150,6 +161,12 @@ def line_segment(
 
 
 def line_segment_feature(geojson: Union[LineString, Polygon], results: List[Feature]):
+    """
+
+    :param geojson:
+    :param results:
+    :return:
+    """
     coords = []
     geometry = geojson["geometry"]
 
@@ -168,6 +185,12 @@ def line_segment_feature(geojson: Union[LineString, Polygon], results: List[Feat
 
 
 def create_segments(coords, properties):
+    """
+    Create Segments from LineString coordinates
+    :param coords: coords LineString coordinates
+    :param properties: properties GeoJSON properties
+    :return: Line segments Features
+    """
     segments = []
 
     def callback(current_coords, previous_coords):
@@ -184,6 +207,12 @@ def create_segments(coords, properties):
 
 
 def bbox(coords1, coords2):
+    """
+    Create BBox between two coordinates
+    :param coords1: coords1 Point coordinate
+    :param coords2: coords2 Point coordinate
+    :return: Bounding Box as [west, south, east, north]
+    """
     x1 = coords1[0]
     y1 = coords1[1]
     x2 = coords2[0]
