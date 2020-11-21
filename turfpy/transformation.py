@@ -678,10 +678,7 @@ def transform_translate(
 
 
 def transform_scale(
-    features,
-    factor: float,
-    origin: Union[str, list] = "centroid",
-    mutate: bool = False,
+    features, factor: float, origin: Union[str, list] = "centroid", mutate: bool = False,
 ):
     """
     Scale a GeoJSON from a given
@@ -814,7 +811,10 @@ def tesselate(poly: Feature) -> FeatureCollection:
     ... [21, 15], [11, 11], [11, 0]]], "type": "Polygon"})
     >>> tesselate(polygon)
     """
-    if poly.geometry.type != "Polygon" and poly.geometry.type != "MultiPolygon":
+    if (
+        poly["geometry"]["type"] != "Polygon"
+        and poly["geometry"]["type"] != "MultiPolygon"
+    ):
         raise ValueError("Geometry must be Polygon or MultiPolygon")
 
     fc = FeatureCollection([])
