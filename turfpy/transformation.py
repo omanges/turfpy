@@ -814,7 +814,10 @@ def tesselate(poly: Feature) -> FeatureCollection:
     ... [21, 15], [11, 11], [11, 0]]], "type": "Polygon"})
     >>> tesselate(polygon)
     """
-    if poly.geometry.type != "Polygon" and poly.geometry.type != "MultiPolygon":
+    if (
+        poly["geometry"]["type"] != "Polygon"
+        and poly["geometry"]["type"] != "MultiPolygon"
+    ):
         raise ValueError("Geometry must be Polygon or MultiPolygon")
 
     fc = FeatureCollection([])

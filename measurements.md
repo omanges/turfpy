@@ -427,6 +427,7 @@ square(bbox)
 | ------- |   ---------------------------------------------------------- | ---------------------------------------------- |
 | `points`    | Feature/FeatureCollection of Points                      | FeatureCollection of Points to find            |
 | `polygons`  | Feature/FeatureCollection of Polygon(s)/MultiPolygon(s)  | FeatureCollection of Polygon(s)/MultiPolygon(s)|
+| `chunk_size`  | int                                                    | Number of chunks each process to handle. The default value is 1, for a large number of features please use `chunk_size` greater than 1 to get better results in terms of performance.|
 
 | Return      | Type               | Description                                                       |
 | ----------- | ------------------ | ----------------------------------------------------------------- |

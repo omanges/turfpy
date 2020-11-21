@@ -59,11 +59,15 @@ def get_coord(coord):
         raise Exception("coord is required")
 
     if not isinstance(coord, list):
-        if coord.type == "Feature" and coord.geometry and coord.geometry.type == "Point":
-            return coord.geometry.coordinates
+        if (
+            coord["type"] == "Feature"
+            and coord["geometry"]
+            and coord["geometry"]["type"] == "Point"
+        ):
+            return coord["geometry"]["coordinates"]
 
-        if coord.type == "Point":
-            return coord.coordinates
+        if coord["type"] == "Point":
+            return coord["coordinates"]
 
     if (
         isinstance(coord, list)

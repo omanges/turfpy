@@ -4,8 +4,11 @@ understand the patterns and relationships of geographic features.
 This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
+import concurrent.futures
+from functools import partial
 from math import asin, atan2, cos, degrees, log, pi, pow, radians, sin, sqrt, tan
-from typing import Optional, Union
+from multiprocessing import Manager
+from typing import List, Optional, Union
 
 from geojson import (
     Feature,
@@ -1294,7 +1297,9 @@ def square(bbox: list):
 
 
 def points_within_polygon(
-    points: Union[Feature, FeatureCollection], polygons: Union[Feature, FeatureCollection]
+    points: Union[Feature, FeatureCollection],
+    polygons: Union[Feature, FeatureCollection],
+    chunk_size: int = 1,
 ) -> FeatureCollection:
     """Find Point(s) that fall within (Multi)Polygon(s).
 
@@ -1308,26 +1313,46 @@ def points_within_polygon(
     :param points: A single GeoJSON ``Point`` feature or FeatureCollection of Points.
     :param polygons: A Single GeoJSON Polygon/MultiPolygon or FeatureCollection of
         Polygons/MultiPolygons.
+    :param chunk_size: Number of chunks each process to handle. The default value is
+            1, for a large number of features please use `chunk_size` greater than 1
+            to get better results in terms of performance.
     :return: A :class:`geojson.FeatureCollection` of Points.
     """
-    results = []
+    if not points:
+        raise Exception("Points cannot be empty")
 
-    def __callback_feature_each(feature, feature_index):
+    if points["type"] == "Point":
+        points = FeatureCollection([Feature(geometry=points)])
+
+    if points["type"] == "Feature":
+        points = FeatureCollection([points])
+
+    manager = Manager()
+    results: List[dict] = manager.list()
+
+    part_func = partial(
+        check_each_point,
+        polygons=polygons,
+        results=results,
+    )
+
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        for _ in executor.map(part_func, points["features"], chunksize=chunk_size):
+            pass
+
+    return FeatureCollection(list(results))
+
+
+def check_each_point(point, polygons, results):
+    def __callback_geom_each(
+        current_geometry, feature_index, feature_properties, feature_bbox, feature_id
+    ):
         contained = False
+        if boolean_point_in_polygon(point, current_geometry):
+            contained = True
 
-        def __callback_geom_each(
-            current_geometry, feature_index, feature_properties, feature_bbox, feature_id
-        ):
-            if boolean_point_in_polygon(feature, current_geometry):
-                nonlocal contained
-                contained = True
+        if contained:
+            nonlocal results
+            results.append(point)
 
-            if contained:
-                nonlocal results
-                results.append(feature)
-
-        geom_each(polygons, __callback_geom_each)
-        return True
-
-    feature_each(points, __callback_feature_each)
-    return FeatureCollection(results)
+    geom_each(polygons, __callback_geom_each)
