@@ -8,7 +8,7 @@ import concurrent.futures
 from functools import partial
 from math import asin, atan2, cos, degrees, log, pi, pow, radians, sin, sqrt, tan
 from multiprocessing import Manager
-from typing import Optional, Union, List
+from typing import List, Optional, Union
 
 from geojson import (
     Feature,
@@ -804,7 +804,11 @@ def explode(geojson):
 
         def _callback_feature_each(feature, feature_index):
             def _callback_coord_each(
-                coord, coord_index, feature_index, multi_feature_index, geometry_index,
+                coord,
+                coord_index,
+                feature_index,
+                multi_feature_index,
+                geometry_index,
             ):
                 nonlocal points
                 point = Point(coord)
@@ -816,7 +820,11 @@ def explode(geojson):
     else:
 
         def _callback_coord_each(
-            coord, coord_index, feature_index, multi_feature_index, geometry_index,
+            coord,
+            coord_index,
+            feature_index,
+            multi_feature_index,
+            geometry_index,
         ):
             nonlocal points, geojson
             point = Point(coord)
@@ -873,7 +881,9 @@ def polygon_tangents(point, polygon):
                 ltan = poly_coords[0][nearest_pt_index]
 
         eprev = _is_left(
-            poly_coords[0][0], poly_coords[0][len(poly_coords[0]) - 1], point_coords,
+            poly_coords[0][0],
+            poly_coords[0][len(poly_coords[0]) - 1],
+            point_coords,
         )
         out = process_polygon(poly_coords[0], point_coords, eprev, enext, rtan, ltan)
         rtan = out[0]
@@ -1136,7 +1146,8 @@ def rhumb_destination(origin, distance, bearing, options: dict = {}) -> Feature:
     coords = get_coord(origin)
     destination_point = _calculate_rhumb_destination(coords, distance_in_meters, bearing)
     return Feature(
-        geometry=Point(destination_point), properties=options.get("properties", ""),
+        geometry=Point(destination_point),
+        properties=options.get("properties", ""),
     )
 
 
@@ -1319,7 +1330,11 @@ def points_within_polygon(
     manager = Manager()
     results: List[dict] = manager.list()
 
-    part_func = partial(check_each_point, polygons=polygons, results=results,)
+    part_func = partial(
+        check_each_point,
+        polygons=polygons,
+        results=results,
+    )
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
         for _ in executor.map(part_func, points["features"], chunksize=chunk_size):
