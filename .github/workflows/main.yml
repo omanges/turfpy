@@ -24,13 +24,12 @@ jobs:
     - name: Setup conda
       uses: conda-incubator/setup-miniconda@v2
       with:
-        mamba-version: "*"
-        channels: conda-forge
+        miniconda-version: "latest"
+        activate-environment: test
 
     - name: Conda install dependencies
       shell: bash -l {0}
       run: |
-        mamba install python=${{ matrix.python-version }} pip nodejs
         pip install -r requirements.txt
         pip install -r dev_requirements.txt
 
