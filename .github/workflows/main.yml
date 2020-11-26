@@ -25,13 +25,13 @@ jobs:
       uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: ${{ matrix.python-version }}
-        auto-update-conda: true
-        miniconda-version: "latest"
-        activate-environment: test
+        mamba-version: "*"
+        channels: conda-forge
 
     - name: Conda install dependencies
       shell: bash -l {0}
       run: |
+        conda init
         pip install -r requirements.txt
         pip install -r dev_requirements.txt
 
