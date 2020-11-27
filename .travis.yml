@@ -1,17 +1,8 @@
 language: python
 python:
-- '3.6'
-- '3.7'
 - '3.8'
-install:
-- pip install -r requirements.txt
-- pip install -r dev_requirements.txt
 script:
 - make clean
-- make lint
-- make typing
-- pytest -v --durations=10 --cov-report=xml --cov=turfpy tests
-- sh scripts/build_apiref.sh
 deploy:
   provider: pypi
   username: __token__
@@ -21,3 +12,4 @@ deploy:
     tags: true
     branch: master
     python: 3.8
+    condition: $TRAVIS_TAG =~ ^[0-9]+\.[0-9]+\.[0-9]+
