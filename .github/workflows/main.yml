@@ -31,8 +31,6 @@ jobs:
     - name: Conda install dependencies
       shell: bash -l {0}
       run: |
-        conda init
-        mamba install python=${{ matrix.python-version }} pip nodejs
         pip install -r requirements.txt
         pip install -r dev_requirements.txt
 
