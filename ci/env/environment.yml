@@ -10,4 +10,4 @@ dependencies:
   - pygeos
   - pip:
     - "-r ../../dev_requirements.txt"
-    - "-e ."
+    - "-e ../.."
