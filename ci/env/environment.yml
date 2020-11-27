@@ -1,0 +1,13 @@
+name: test
+channels:
+  - conda-forge
+dependencies:
+  - geojson
+  - shapely
+  - scipy
+  - numpy
+  - geopandas
+  - pygeos
+  - pip:
+    - "-r dev_requirements.txt"
+    - "-e ."

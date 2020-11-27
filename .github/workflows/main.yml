@@ -25,14 +25,14 @@ jobs:
       uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: ${{ matrix.python-version }}
+        activate-environment: test
         mamba-version: "*"
         channels: conda-forge
 
     - name: Conda install dependencies
       shell: bash -l {0}
       run: |
-        pip install -r requirements.txt
-        pip install -r dev_requirements.txt
+        conda env update --file ci/env/environment.yml --name test
 
     - name: Install turfpy
       shell: bash -l {0}
