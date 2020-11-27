@@ -9,5 +9,5 @@ dependencies:
   - geopandas
   - pygeos
   - pip:
-    - "-r dev_requirements.txt"
+    - "-r ../../dev_requirements.txt"
     - "-e ."
