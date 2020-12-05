@@ -1,0 +1,51 @@
+name: Daily Tests
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  run:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: [3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup conda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+        activate-environment: test
+        mamba-version: "*"
+        channels: conda-forge
+
+    - name: Conda install dependencies
+      shell: bash -l {0}
+      run: |
+        conda env update --file ci/env/environment.yml --name test
+
+    - name: Install turfpy
+      shell: bash -l {0}
+      run: pip install .
+
+    - name: Lint check
+      shell: bash -l {0}
+      run: |
+        make clean
+        make lint
+        make typing
+
+    - name: Test check
+      shell: bash -l {0}
+      run: pytest -v --durations=10 --cov-report=xml --cov=turfpy tests
+
+    - name: Build docs (Only on Linux for saving time)
+      if: matrix.os == 'ubuntu-latest'
+      shell: bash -l {0}
+      run: sh scripts/build_apiref.sh
