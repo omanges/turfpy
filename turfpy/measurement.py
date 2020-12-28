@@ -366,7 +366,9 @@ def length(geojson, units: str = "km"):
 # ----------- Destination --------------#
 
 
-def destination(origin: Union[Feature, Point], distance, bearing, options: dict = {}) -> Feature:
+def destination(
+    origin: Union[Feature, Point], distance, bearing, options: dict = {}
+) -> Feature:
     """
     Takes a Point and calculates the location of a destination point given a distance in
     degrees, radians, miles, or kilometers and bearing in degrees.
