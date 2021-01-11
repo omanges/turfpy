@@ -71,6 +71,13 @@ A Python library for performing geospatial data analysis which reimplements `tur
    Line Intersect <misc/line_intersect>
    Line Segment <misc/line_segment>
 
+.. toctree::
+  :maxdepth: 1
+  :caption: Random
+
+   Random Position <random/random_position>
+   Random Points <random/random_points>
+
 
 .. toctree::
   :maxdepth: 1
