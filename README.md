@@ -50,6 +50,8 @@ It supports below features:
 
 - [Misc](https://github.com/omanges/turfpy/blob/master/misc.md)
 
+- [Random](https://github.com/omanges/turfpy/blob/master/random.md)
+
 ## Documentation
 
 Documentation can be found at: [docs](https://turfpy.readthedocs.io/en/latest/)
