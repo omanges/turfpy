@@ -157,7 +157,7 @@ def intersect(features: Union[List[Feature], FeatureCollection]) -> Feature:
 
     intersection = mapping(intersection)
 
-    if len(intersection["coordinates"]) == 0:
+    if len(intersection.get("coordinates",[])) == 0 and len(intersection.get('geometries',[])) == 0:
         return None
 
     properties = merge_dict(properties_list)
