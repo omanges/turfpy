@@ -123,6 +123,44 @@ def test_intersection():
             [-122.689027, 45.48565],
         ]
     ]
+    
+    a = Feature(
+        geometry={
+            "coordinates": [
+                [
+                    [0,0],
+                    [0,3],
+                    [3,0],
+                    [0,0],
+                ]
+            ],
+            "type": "Polygon",
+        }
+    )
+    b = Feature(
+        geometry={
+            "coordinates": [
+                [
+                    [0,3],
+                    [1,2],
+                    [3,3],
+                    [1.8,1],
+                    [3,0],
+                    [7,0],
+                    [0,7],
+                    [0,3],
+                ]
+            ],
+            "type": "Polygon",
+        }
+    )
+    inter = intersect([a, b])
+    inter = inter.geometry
+    assert inter.type=='GeometryCollection'
+    assert len(inter.geometries)==2
+    assert inter.geometries[0]['type']=='LineString'
+    assert inter.geometries[1]['type']=='Polygon'
+
 
 
 def test_bezier_spline():
