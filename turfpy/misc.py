@@ -13,13 +13,15 @@ from geojson import (
     MultiLineString,
     MultiPolygon,
     Polygon,
+    Point,
 )
 from shapely.geometry import mapping, shape
 
 import turfpy._compact as compat
-from turfpy.helper import get_coords
+from turfpy.helper import get_coords, get_coord, get_type
 from turfpy.meta import flatten_each
 from turfpy.transformation import intersect
+from turfpy.measurement import distance, bearing, destination
 
 
 def line_intersect(
@@ -238,3 +240,142 @@ def bbox(coords1, coords2):
         north = y2
 
     return [west, south, east, north]
+
+def nearest_point_on_line(
+    line: Union[LineString, MultiLineString],
+    point: Point,
+    options: dict = {}
+) -> Point:
+    """
+    Takes a Point and a LineString and calculates the closest Point on the (Multi)LineString.
+
+    :param line: line(s) to snap to
+    :param point: point to snap from
+    :param options: Option like units of distance and properties to be passed to
+        destination point feature. Value for units are 'mi', 'km', 'deg' and 'rad'.
+    :return: Feature: closest point on the `line` to `point`. The properties object will contain three values: 
+        `index`: closest point was found on nth line part,
+        `dist`: distance between pt and the closest point,
+        `location`: distance along the line between start and the closest point.
+    """
+    closestPt = Point([float("inf"), float("inf")], properties = {'dist': float("inf")})
+    length = 0.0
+
+    def dist(pt1, pt2, options):
+        if "units" in options:
+            return distance(pt1, pt2, options["units"])
+        else:
+            return distance(pt1, pt2)
+
+    def callback_flatten_each(feature, feature_index, multi_feature_index):
+        nonlocal length
+        nonlocal closestPt
+
+        coords = get_coords(feature)
+        for i, coord in enumerate(coords[:-1]):
+            # start
+            start = Feature(geometry=Point(coord))
+            start.properties = { 'dist': dist(point, start, options),  }
+            # stop
+            stop = Feature(geometry=Point(coords[i+1]))
+            stop.properties = { 'dist': dist(point, stop, options) }
+            # section length
+            section_length = dist(start, stop, options)
+            # perpendicular
+            height_distance = max(
+                start.properties['dist'],
+                stop.properties['dist']
+                )
+            direction = bearing(start, stop)
+
+            perpendicular_pt1 = destination(
+                Feature(geometry=point),
+                height_distance,
+                direction + 90,
+                options
+                )
+            perpendicular_pt2 = destination(
+                Feature(geometry=point),
+                height_distance,
+                direction - 90,
+                options
+                )
+            intersect = line_intersect(
+                Feature(geometry=LineString([
+                    get_coord(perpendicular_pt1),
+                    get_coord(perpendicular_pt2)
+                ])),
+                Feature(geometry=LineString([
+                    get_coord(start),
+                    get_coord(stop)
+                ]))
+            )
+            intersectPt = None
+            if len(intersect['features']) > 0:
+                intersectPt = intersect['features'][0]
+                intersectPt.properties['dist'] = dist(point, intersectPt, options)
+                intersectPt.properties['location'] = length + dist(start, intersectPt, options)
+
+            if start.properties['dist'] < closestPt.properties['dist']:
+                closestPt = start
+                closestPt.properties['index'] = i
+                closestPt.properties['location'] = length
+
+            if stop.properties['dist'] < closestPt.properties['dist']:
+                closestPt = stop
+                closestPt.properties['index'] = i + 1
+                closestPt.properties['location'] = length + section_length
+
+            if intersectPt and intersectPt.properties['dist'] < closestPt.properties['dist']:
+                closestPt = intersectPt
+                closestPt.properties['index'] = i
+            
+            # update length
+            length += section_length
+        # process all Features
+        return True
+    
+    flatten_each(line, callback_flatten_each)
+
+    # append preoperties from options parameter to the result
+    properties=options["properties"] if "properties" in options else {}
+    properties.update(closestPt.properties)
+    closestPt.properties = dict(properties)
+    return closestPt
+
+
+def line_slice(
+    startPt: Point, 
+    stopPt: Point, 
+    line: LineString,
+) -> LineString:
+    """
+    Takes a LineString, a start Point, and a stop Point
+    and returns a subsection of the line in-between those points.
+    The start & stop points don't need to fall exactly on the line.
+    
+    This can be useful for extracting only the part of a route between waypoints.
+    
+    :param startPt: starting point
+    :param stopPt: stopping point
+    :param line: line to slice
+    :return: sliced line as LineString Feature
+    """
+
+    if not line or get_type(line) != "LineString":
+        raise Exception("line must be a LineString")
+
+    coords = get_coords(line)
+    startVertex = nearest_point_on_line(line, startPt)
+    stopVertex = nearest_point_on_line(line, stopPt)
+
+    if startVertex['properties']['index'] <= stopVertex['properties']['index']:
+        ends = [startVertex, stopVertex]
+    else:
+        ends = [stopVertex, startVertex]
+    
+    clipCoords = [get_coord(ends[0])]
+    clipCoords.extend(coords[ ends[0]['properties']['index'] + 1 : ends[1]['properties']['index'] + 1 ] )
+    clipCoords.append(get_coord(ends[1]))
+
+    return Feature(geometry=LineString(clipCoords), properties = line['properties'].copy())
