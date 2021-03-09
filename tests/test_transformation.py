@@ -374,7 +374,7 @@ def test_tesselate():
     }
 
 
-def test_line_offset():
+def test_line_offset_multilinestring():
     ls = Feature(
         geometry=MultiLineString(
             [
@@ -391,6 +391,36 @@ def test_line_offset():
     assert lined_off["geometry"]["coordinates"] == [
         [[3.748342, 9.278899], [-130.951658, 1.548899]],
         [[23.172299, -34.231543], [-1.320442, -4.640314], [3.478898, 77.948321]],
+    ]
+
+
+def test_line_offset_linestring():
+    ls = Feature(
+        geometry=LineString(
+            [
+                [-70.3974009, -23.6494371],
+                [-70.3973829, -23.6494227],
+                [-70.3965343, -23.6487429]
+            ]
+        )
+    )
+
+    lined_off_positive = line_offset(ls, 0.01, unit="km")
+    lined_off_negative = line_offset(ls, -0.01, unit="km")
+
+    assert lined_off_positive["type"] == "Feature"
+    assert lined_off_negative["type"] == "Feature"
+    assert len(lined_off_positive["geometry"]["coordinates"]) == len(ls['geometry']['coordinates'])
+    assert len(lined_off_negative["geometry"]["coordinates"]) == len(ls['geometry']['coordinates'])
+    assert lined_off_positive["geometry"]["coordinates"] == [
+        [-70.397346, -23.649508],
+        [-70.397327, -23.649494],
+        [-70.396478, -23.648813]
+    ]
+    assert lined_off_negative["geometry"]["coordinates"] == [
+        [-70.397456, -23.649366],
+        [-70.397439, -23.649352],
+        [-70.39659, -23.648673]
     ]
 
 

@@ -132,5 +132,5 @@ def length_to_degrees(distance, units: str = "km"):
 
 def radians_to_degrees(radians: float):
     """#TODO: Add description"""
-    degrees = radians % (2 * math.pi)
+    degrees = abs(radians) % (2 * math.pi) * (1 if radians >= 0 else -1)
     return degrees * 180 / math.pi
