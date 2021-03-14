@@ -95,7 +95,7 @@ def test_line_slice():
 
     assert sliced.geometry["type"] == "LineString"
     assert len(sliced.geometry["coordinates"]) == 5
-    crds = line.coordinates
+    crds = line.geometry.coordinates
     crds[0] = start.coordinates
     crds[4] = stop.coordinates
     ref_crds = [i for crd in crds for i in crd]
