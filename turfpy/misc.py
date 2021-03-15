@@ -259,7 +259,7 @@ def nearest_point_on_line(
         `dist`: distance between pt and the closest point,
         `location`: distance along the line between start and the closest point.
     """
-    closestPt = Point([float("inf"), float("inf")], properties={"dist": float("inf")})
+    closest_pt = Point([float("inf"), float("inf")], properties={"dist": float("inf")})
     length = 0.0
 
     def dist(pt1, pt2, options):
@@ -270,7 +270,7 @@ def nearest_point_on_line(
 
     def callback_flatten_each(feature, feature_index, multi_feature_index):
         nonlocal length
-        nonlocal closestPt
+        nonlocal closest_pt
 
         coords = get_coords(feature)
         for i, coord in enumerate(coords[:-1]):
@@ -300,30 +300,30 @@ def nearest_point_on_line(
                 ),
                 Feature(geometry=LineString([get_coord(start), get_coord(stop)])),
             )
-            intersectPt = None
+            intersect_pt = None
             if len(intersect["features"]) > 0:
-                intersectPt = intersect["features"][0]
-                intersectPt.properties["dist"] = dist(point, intersectPt, options)
-                intersectPt.properties["location"] = length + dist(
-                    start, intersectPt, options
+                intersect_pt = intersect["features"][0]
+                intersect_pt.properties["dist"] = dist(point, intersect_pt, options)
+                intersect_pt.properties["location"] = length + dist(
+                    start, intersect_pt, options
                 )
 
-            if start.properties["dist"] < closestPt.properties["dist"]:
-                closestPt = start
-                closestPt.properties["index"] = i
-                closestPt.properties["location"] = length
+            if start.properties["dist"] < closest_pt.properties["dist"]:
+                closest_pt = start
+                closest_pt.properties["index"] = i
+                closest_pt.properties["location"] = length
 
-            if stop.properties["dist"] < closestPt.properties["dist"]:
-                closestPt = stop
-                closestPt.properties["index"] = i + 1
-                closestPt.properties["location"] = length + section_length
+            if stop.properties["dist"] < closest_pt.properties["dist"]:
+                closest_pt = stop
+                closest_pt.properties["index"] = i + 1
+                closest_pt.properties["location"] = length + section_length
 
             if (
-                intersectPt
-                and intersectPt.properties["dist"] < closestPt.properties["dist"]
+                intersect_pt
+                and intersect_pt.properties["dist"] < closest_pt.properties["dist"]
             ):
-                closestPt = intersectPt
-                closestPt.properties["index"] = i
+                closest_pt = intersect_pt
+                closest_pt.properties["index"] = i
 
             # update length
             length += section_length
@@ -334,14 +334,14 @@ def nearest_point_on_line(
 
     # append preoperties from options parameter to the result
     properties = options["properties"] if "properties" in options else {}
-    properties.update(closestPt.properties)
-    closestPt.properties = dict(properties)
-    return closestPt
+    properties.update(closest_pt.properties)
+    closest_pt.properties = dict(properties)
+    return closest_pt
 
 
 def line_slice(
-    startPt: Point,
-    stopPt: Point,
+    start_pt: Point,
+    stop_pt: Point,
     line: LineString,
 ) -> LineString:
     """
@@ -351,8 +351,8 @@ def line_slice(
 
     This can be useful for extracting only the part of a route between waypoints.
 
-    :param startPt: starting point
-    :param stopPt: stopping point
+    :param start_pt: starting point
+    :param stop_pt: stopping point
     :param line: line to slice
     :return: sliced line as LineString Feature
     """
@@ -361,18 +361,18 @@ def line_slice(
         raise Exception("line must be a LineString")
 
     coords = get_coords(line)
-    startVertex = nearest_point_on_line(line, startPt)
-    stopVertex = nearest_point_on_line(line, stopPt)
+    start_vertex = nearest_point_on_line(line, start_pt)
+    stop_vertex = nearest_point_on_line(line, stop_pt)
 
-    if startVertex["properties"]["index"] <= stopVertex["properties"]["index"]:
-        ends = [startVertex, stopVertex]
+    if start_vertex["properties"]["index"] <= stop_vertex["properties"]["index"]:
+        ends = [start_vertex, stop_vertex]
     else:
-        ends = [stopVertex, startVertex]
+        ends = [stop_vertex, start_vertex]
 
-    clipCoords = [get_coord(ends[0])]
-    clipCoords.extend(
+    clip_coords = [get_coord(ends[0])]
+    clip_coords.extend(
         coords[ends[0]["properties"]["index"] + 1 : ends[1]["properties"]["index"] + 1]
     )
-    clipCoords.append(get_coord(ends[1]))
+    clip_coords.append(get_coord(ends[1]))
 
-    return Feature(geometry=LineString(clipCoords), properties=line["properties"].copy())
+    return Feature(geometry=LineString(clip_coords), properties=line["properties"].copy())
