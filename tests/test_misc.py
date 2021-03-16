@@ -1,6 +1,7 @@
-from geojson import Feature, LineString
+from geojson import Feature, LineString, Point
+from pytest import approx
 
-from turfpy.misc import line_intersect, line_segment
+from turfpy.misc import line_intersect, line_segment, line_slice, nearest_point_on_line
 
 
 def test_line_intersect():
@@ -67,3 +68,36 @@ def test_line_segment():
             "type": "Feature",
         },
     ]
+
+
+def test_nearest_point_on_line():
+    pt = Point([2.5, 1.75])
+    ls = Feature(geometry=LineString([(1, 2), (2, 2), (3, 2)]))
+    opts = {"key1": "value1", "key2": "value2"}
+
+    npl = nearest_point_on_line(ls, pt, options={"properties": opts.copy()})
+
+    assert npl.geometry["type"] == "Point"
+    assert npl.properties["index"] == 1
+    assert 27.798 == approx(npl.properties["dist"], abs=1e-3)
+    assert 166.682 == approx(npl.properties["location"], abs=1e-3)
+    assert npl.geometry.coordinates == approx([2.5, 2], abs=1e-3)
+    for key in opts.keys():
+        assert npl.properties[key] == opts[key]
+
+
+def test_line_slice():
+    start = Point([1.5, 1.5])
+    stop = Point([4.5, 1.5])
+    line = Feature(geometry=LineString([[1, 1], [2, 2], [3, 1], [4, 2], [5, 1]]))
+
+    sliced = line_slice(start, stop, line)
+
+    assert sliced.geometry["type"] == "LineString"
+    assert len(sliced.geometry["coordinates"]) == 5
+    crds = line.geometry.coordinates
+    crds[0] = start.coordinates
+    crds[4] = stop.coordinates
+    ref_crds = [i for crd in crds for i in crd]
+    sliced_crds = [i for crd in sliced.geometry.coordinates for i in crd]
+    assert sliced_crds == approx(ref_crds, abs=1e-3)
