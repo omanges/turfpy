@@ -156,6 +156,7 @@ def line_segment(
 
     def callback_flatten_each(feature, feature_index, multi_feature_index):
         line_segment_feature(feature, results)
+        return True
 
     flatten_each(geojson, callback_flatten_each)
 
