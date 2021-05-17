@@ -65,10 +65,11 @@ def bearing(start: Feature, end: Feature, final=False) -> float:
         return _calculate_final_bearing(start, end)
     start_coordinates = start["geometry"]["coordinates"]
     end_coordinates = end["geometry"]["coordinates"]
-    lon1 = radians(float(start_coordinates[0]))
-    lon2 = radians(float(end_coordinates[0]))
-    lat1 = radians(float(start_coordinates[1]))
-    lat2 = radians(float(end_coordinates[1]))
+    lat1 = radians(float(start_coordinates[0]))
+    lat2 = radians(float(end_coordinates[0]))
+    lon1 = radians(float(start_coordinates[1]))
+    lon2 = radians(float(end_coordinates[1]))
+    
 
     a = sin(lon2 - lon1) * cos(lat2)
 
