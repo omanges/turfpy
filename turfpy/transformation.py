@@ -159,7 +159,7 @@ def intersect(features: Union[List[Feature], FeatureCollection]) -> Feature:
 
     if (
         len(intersection.get("coordinates", [])) == 0
-        and len(intersection.get('geometries', [])) == 0
+        and len(intersection.get("geometries", [])) == 0
     ):
         return None
 

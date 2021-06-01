@@ -3,6 +3,8 @@ import math
 """
 This module will have common utilities.
 """
+from geojson import Feature, Point
+from geojson.geometry import Geometry
 
 avg_earth_radius_km = 6371008.8
 conversions = {
@@ -58,17 +60,6 @@ def get_coord(coord):
     if not coord:
         raise Exception("coord is required")
 
-    if not isinstance(coord, list):
-        if (
-            coord["type"] == "Feature"
-            and coord["geometry"]
-            and coord["geometry"]["type"] == "Point"
-        ):
-            return coord["geometry"]["coordinates"]
-
-        if coord["type"] == "Point":
-            return coord["coordinates"]
-
     if (
         isinstance(coord, list)
         and len(coord) >= 2
@@ -76,8 +67,22 @@ def get_coord(coord):
         and not isinstance(coord[1], list)
     ):
         return coord
-
-    raise Exception("coord must be GeoJSON Point or an Array of numbers")
+    elif (
+        isinstance(coord, Feature)
+        and coord["geometry"]
+        and coord["geometry"]["type"] == "Point"
+    ):
+        return coord["geometry"]["coordinates"]
+    elif isinstance(coord, Point):
+        return coord["coordinates"]
+    elif (
+        isinstance(coord, dict)
+        and coord["geometry"]
+        and coord["geometry"]["type"] == "Point"
+    ):
+        return coord["geometry"]["coordinates"]
+    else:
+        raise Exception("coord must be GeoJSON Point or an Array of numbers")
 
 
 def get_geom(geojson):
@@ -91,14 +96,16 @@ def get_coords(coords):
     """#TODO: Add description"""
     if isinstance(coords, list):
         return coords
-
-    if coords["type"] == "Feature":
-        if coords["geometry"]:
-            return coords["geometry"]["coordinates"]
+    elif isinstance(coords, Feature) and coords["geometry"]:
+        return coords["geometry"]["coordinates"]
+    elif isinstance(coords, Geometry) and coords["coordinates"]:
+        return coords["coordinates"]
+    elif isinstance(coords, dict):
+        return coords["coordinates"]
     else:
-        if coords["coordinates"]:
-            return coords["coordinates"]
-    raise Exception("coords must be GeoJSON Feature, Geometry Object or an List")
+        raise Exception(
+            "coords must be GeoJSON Feature, shapely Geometry Object, dict or an List"
+        )
 
 
 def feature_of(feature, ttype, name):
