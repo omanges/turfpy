@@ -486,7 +486,7 @@ def sector(
     if not options:
         options = {}
     steps = int(options["steps"]) if options.get("steps") else 64
-    units = options.get("units") if options.get("units") else "km"
+    units = str(options.get("units")) if options.get("units") else "km"
 
     properties = options.get("properties") if options.get("properties") else {}
 
