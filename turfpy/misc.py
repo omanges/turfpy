@@ -380,7 +380,7 @@ def line_slice(
 
 
 def line_arc(
-    center: Feature, radius: float, bearing1: float, bearing2: float, options: dict = {}
+    center: Feature, radius: int, bearing1: int, bearing2: int, options: dict = {}
 ) -> Feature:
     """
     Creates a circular arc, of a circle of the given radius and center point,
@@ -409,8 +409,8 @@ def line_arc(
     """
     if not options:
         options = {}
-    steps = int(options.get("steps")) if options.get("steps") else 64
-    units = options.get("units") if options.get("units") else "km"
+    steps = int(options["steps"]) if options.get("steps") else 64
+    units = str(options.get("units")) if options.get("units") else "km"
 
     angle1 = convert_angle_to_360(bearing1)
     angle2 = convert_angle_to_360(bearing2)
@@ -456,7 +456,7 @@ def line_arc(
 
 
 def sector(
-    center: Feature, radius: float, bearing1: float, bearing2: float, options: dict = {}
+    center: Feature, radius: int, bearing1: int, bearing2: int, options: dict = {}
 ) -> Feature:
     """
     Creates a circular sector of a circle of given radius and center Point ,
@@ -485,7 +485,7 @@ def sector(
     """
     if not options:
         options = {}
-    steps = int(options.get("steps")) if options.get("steps") else 64
+    steps = int(options["steps"]) if options.get("steps") else 64
     units = options.get("units") if options.get("units") else "km"
 
     properties = options.get("properties") if options.get("properties") else {}
