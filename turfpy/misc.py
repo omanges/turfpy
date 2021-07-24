@@ -18,10 +18,10 @@ from geojson import (
 from shapely.geometry import mapping, shape
 
 import turfpy._compact as compat
-from turfpy.helper import get_coord, get_coords, get_type
+from turfpy.helper import convert_angle_to_360, get_coord, get_coords, get_type
 from turfpy.measurement import bearing, destination, distance
-from turfpy.meta import flatten_each
-from turfpy.transformation import intersect
+from turfpy.meta import coord_each, flatten_each
+from turfpy.transformation import circle, intersect
 
 
 def line_intersect(
@@ -377,3 +377,155 @@ def line_slice(
     clip_coords.append(get_coord(ends[1]))
 
     return Feature(geometry=LineString(clip_coords), properties=line["properties"].copy())
+
+
+def line_arc(
+    center: Feature, radius: int, bearing1: int, bearing2: int, options: dict = {}
+) -> Feature:
+    """
+    Creates a circular arc, of a circle of the given radius and center point,
+    between bearing1 and bearing2; 0 bearing is
+    North of center point, positive clockwise.
+
+    :param center: A `Point` object representing center point of circle.
+    :param radius: An int representing radius of the circle.
+    :param bearing1: Angle, in decimal degrees, of the first radius of the arc.
+    :param bearing2: Angle, in decimal degrees, of the second radius of the arc.
+    :param options: A dict representing additional properties,which can be `steps`
+        which has default values as 64 and `units` which has default values of `km`
+    :return: A Line String feature object.
+
+    Example:
+
+
+    >>> from turfpy.misc import line_arc
+    >>> from geojson import Feature, Point
+    >>> center = Feature(geometry=Point((-75, 40)))
+    >>> radius = 5
+    >>> bearing1 = 25
+    >>> bearing2 = 47
+    >>> feature = line_arc(center=center, radius=radius,
+    >>>        bearing1=bearing1, bearing2=bearing2)
+    """
+    if not options:
+        options = {}
+    steps = int(options["steps"]) if options.get("steps") else 64
+    units = str(options.get("units")) if options.get("units") else "km"
+
+    angle1 = convert_angle_to_360(bearing1)
+    angle2 = convert_angle_to_360(bearing2)
+    properties = {}
+    if center.get("type"):
+        if center.get("type") == "Feature":
+            properties = center.get("properties")
+        else:
+            raise Exception("Invalid Feature value for center parameter")
+
+    if angle1 == angle2:
+        return Feature(
+            geometry=LineString(
+                circle(center, radius, steps, units)["geometry"]["coordinates"][0]
+            ),
+            properties=properties,
+        )
+
+    arc_start_degree = angle1
+    arc_end_degree = angle2 if angle1 < angle2 else angle2 + 360
+
+    alfa = arc_start_degree
+    coordinates = []
+    i = 0
+
+    while alfa < arc_end_degree:
+        coordinates.append(
+            destination(center, radius, alfa, {"steps": steps, "units": units})[
+                "geometry"
+            ]["coordinates"]
+        )
+        i += 1
+        alfa = arc_start_degree + i * 360 / steps
+
+    if alfa > arc_end_degree:
+        coordinates.append(
+            destination(center, radius, arc_end_degree, {"steps": steps, "units": units})[
+                "geometry"
+            ]["coordinates"]
+        )
+
+    return Feature(geometry=LineString(coordinates, properties=properties))
+
+
+def sector(
+    center: Feature, radius: int, bearing1: int, bearing2: int, options: dict = {}
+) -> Feature:
+    """
+    Creates a circular sector of a circle of given radius and center Point ,
+    between (clockwise) bearing1 and bearing2; 0
+    bearing is North of center point, positive clockwise.
+
+    :param center: A `Point` object representing center point of circle.
+    :param radius: An int representing radius of the circle.
+    :param bearing1: Angle, in decimal degrees, of the first radius of the arc.
+    :param bearing2: Angle, in decimal degrees, of the second radius of the arc.
+    :param options: A dict representing additional properties, which can be `steps`
+        which has default values as 64, `units` which has default values of `km`,
+        and `properties` which will be added to resulting Feature as properties.
+    :return: A polygon feature object.
+
+    Example:
+
+
+    >>> from turfpy.misc import sector
+    >>> from geojson import Feature, Point
+    >>> center = Feature(geometry=Point((-75, 40)))
+    >>> radius = 5
+    >>> bearing1 = 25
+    >>> bearing2 = 45
+    >>> sector(center, radius, bearing1, bearing2)
+    """
+    if not options:
+        options = {}
+    steps = int(options["steps"]) if options.get("steps") else 64
+    units = str(options.get("units")) if options.get("units") else "km"
+
+    properties = options.get("properties") if options.get("properties") else {}
+
+    if not center:
+        raise Exception("center if required")
+
+    if center.get("type") != "Feature":
+        raise Exception("Invalid Feature value for center parameter")
+
+    if not radius:
+        raise Exception("Radius is required")
+
+    if not bearing1:
+        raise Exception("bearing1 is required")
+
+    if not bearing2:
+        raise Exception("bearing2 is required")
+
+    if convert_angle_to_360(bearing1) == convert_angle_to_360(bearing2):
+        return circle(center, radius, steps, units)
+
+    coords = get_coords(center)
+
+    arc = line_arc(center, radius, bearing1, bearing2, options)
+
+    sliceCoords = [[coords]]
+
+    def _callback_coord_each(
+        coord,
+        coord_index,
+        feature_index,
+        multi_feature_index,
+        geometry_index,
+    ):
+        nonlocal sliceCoords
+        sliceCoords[0].append(coord)
+
+    coord_each(arc, _callback_coord_each)
+
+    sliceCoords[0].append(coords)
+
+    return Feature(geometry=Polygon(sliceCoords), properties=properties)
