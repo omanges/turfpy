@@ -123,15 +123,15 @@ def test_intersection():
             [-122.689027, 45.48565],
         ]
     ]
-    
+
     a = Feature(
         geometry={
             "coordinates": [
                 [
-                    [0,0],
-                    [0,3],
-                    [3,0],
-                    [0,0],
+                    [0, 0],
+                    [0, 3],
+                    [3, 0],
+                    [0, 0],
                 ]
             ],
             "type": "Polygon",
@@ -141,14 +141,14 @@ def test_intersection():
         geometry={
             "coordinates": [
                 [
-                    [0,3],
-                    [1,2],
-                    [3,3],
-                    [1.8,1],
-                    [3,0],
-                    [7,0],
-                    [0,7],
-                    [0,3],
+                    [0, 3],
+                    [1, 2],
+                    [3, 3],
+                    [1.8, 1],
+                    [3, 0],
+                    [7, 0],
+                    [0, 7],
+                    [0, 3],
                 ]
             ],
             "type": "Polygon",
@@ -156,11 +156,10 @@ def test_intersection():
     )
     inter = intersect([a, b])
     inter = inter.geometry
-    assert inter.type=='GeometryCollection'
-    assert len(inter.geometries)==2
-    assert inter.geometries[0]['type']=='LineString'
-    assert inter.geometries[1]['type']=='Polygon'
-
+    assert inter.type == "GeometryCollection"
+    assert len(inter.geometries) == 2
+    assert inter.geometries[0]["type"] == "LineString"
+    assert inter.geometries[1]["type"] == "Polygon"
 
 
 def test_bezier_spline():
@@ -438,7 +437,7 @@ def test_line_offset_linestring():
             [
                 [-70.3974009, -23.6494371],
                 [-70.3973829, -23.6494227],
-                [-70.3965343, -23.6487429]
+                [-70.3965343, -23.6487429],
             ]
         )
     )
@@ -448,17 +447,21 @@ def test_line_offset_linestring():
 
     assert lined_off_positive["type"] == "Feature"
     assert lined_off_negative["type"] == "Feature"
-    assert len(lined_off_positive["geometry"]["coordinates"]) == len(ls['geometry']['coordinates'])
-    assert len(lined_off_negative["geometry"]["coordinates"]) == len(ls['geometry']['coordinates'])
+    assert len(lined_off_positive["geometry"]["coordinates"]) == len(
+        ls["geometry"]["coordinates"]
+    )
+    assert len(lined_off_negative["geometry"]["coordinates"]) == len(
+        ls["geometry"]["coordinates"]
+    )
     assert lined_off_positive["geometry"]["coordinates"] == [
         [-70.397346, -23.649508],
         [-70.397327, -23.649494],
-        [-70.396478, -23.648813]
+        [-70.396478, -23.648813],
     ]
     assert lined_off_negative["geometry"]["coordinates"] == [
         [-70.397456, -23.649366],
         [-70.397439, -23.649352],
-        [-70.39659, -23.648673]
+        [-70.39659, -23.648673],
     ]
 
 
