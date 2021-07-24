@@ -141,3 +141,10 @@ def radians_to_degrees(radians: float):
     """#TODO: Add description"""
     degrees = abs(radians) % (2 * math.pi) * (1 if radians >= 0 else -1)
     return degrees * 180 / math.pi
+
+
+def convert_angle_to_360(alfa: float):
+    beta = alfa % 360
+    if beta < 0:
+        beta += 360
+    return beta
