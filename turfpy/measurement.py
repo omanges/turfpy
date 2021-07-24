@@ -587,6 +587,7 @@ def nearest_point(target_point: Feature, points: FeatureCollection) -> Feature:
         if float(distance_to_point) < min_dist:
             best_feature_index = feature_index
             min_dist = distance_to_point
+        return True
 
     feature_each(points, _callback_feature_each)
 

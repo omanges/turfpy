@@ -61,3 +61,60 @@ poly = {
 
 line_segment(poly)
 ```
+
+  * Line Arc : Creates a circular arc, of a circle of the given radius and center point,
+    between bearing1 and bearing2; 0 bearing is
+    North of center point, positive clockwise.
+
+| Argument  | Type | Description |
+| ------- | ------ | ----------- |
+| `center`  | Feature   | A `Point` object representing center point of circle |
+| `radius`  | float  | An int representing radius of the circle |
+| `bearing1`  | float  | Angle, in decimal degrees, of the first radius of the arc |
+| `bearing2`  | float  | Angle, in decimal degrees, of the second radius of the arc |
+| `options`  | float  | A dict representing additional properties,which can be `steps` which has default values as 64 and `units` which has default values of `km` |
+
+| Return  | Type | Description |
+| ------- | ------ | ----------- |
+| `line string`  | Feature  | A Line String feature object. |
+
+```python
+from turfpy.misc import line_arc
+from geojson import Feature, Point
+
+center = Feature(geometry=Point((-75, 40)))
+radius = 5
+bearing1 = 25
+bearing2 = 47
+
+line_arc(center=center, radius=radius, bearing1=bearing1, bearing2=bearing2)
+```
+
+
+  * Line Arc : Creates a circular sector of a circle of given radius and center Point ,
+    between (clockwise) bearing1 and bearing2; 0
+    bearing is North of center point, positive clockwise.
+
+| Argument  | Type | Description |
+| ------- | ------ | ----------- |
+| `center`  | Feature   | A `Point` object representing center point of circle |
+| `radius`  | float  | An int representing radius of the circle |
+| `bearing1`  | float  | Angle, in decimal degrees, of the first radius of the arc |
+| `bearing2`  | float  | Angle, in decimal degrees, of the second radius of the arc |
+| `options`  | float  | A dict representing additional properties, which can be `steps` which has default values as 64, `units` which has default values of `km`, and `properties` which will be added to resulting Feature as properties. |
+
+| Return  | Type | Description |
+| ------- | ------ | ----------- |
+| `polygon`  | Feature  | A polygon feature object. |
+
+```python
+from turfpy.misc import sector
+from geojson import Feature, Point
+
+center = Feature(geometry=Point((-75, 40)))
+radius = 5
+bearing1 = 25
+bearing2 = 45
+
+feature = sector(center, radius, bearing1, bearing2, options={"properties":{"length":3}})
+```

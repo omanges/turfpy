@@ -70,6 +70,8 @@ A Python library for performing geospatial data analysis which reimplements `tur
 
    Line Intersect <misc/line_intersect>
    Line Segment <misc/line_segment>
+   Line Arc <misc/line_arc>
+   Sector <misc/sector>
 
 .. toctree::
   :maxdepth: 1
