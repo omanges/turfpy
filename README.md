@@ -6,7 +6,7 @@
 [![PyPI - License](https://img.shields.io/pypi/l/turfpy)](https://pypi.org/project/turfpy/)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/omanges/turfpy.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/omanges/turfpy/alerts/)
 [![code quality: python](https://img.shields.io/lgtm/grade/python/g/omanges/turfpy.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/omanges/turfpy/context:python)
-[![Downloads](https://pepy.tech/badge/turfpy/month)](https://pepy.tech/project/turfpy/month)
+[![Downloads](https://pepy.tech/badge/turfpy/month)](https://pepy.tech/project/turfpy)
 [![Conda (channel only)](https://img.shields.io/conda/vn/conda-forge/turfpy)](https://anaconda.org/conda-forge/turfpy)
 [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/turfpy)](https://anaconda.org/conda-forge/turfpy)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/turfpy/turfpy-user-group?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
