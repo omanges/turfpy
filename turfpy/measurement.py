@@ -65,10 +65,11 @@ def bearing(start: Feature, end: Feature, final=False) -> float:
         return _calculate_final_bearing(start, end)
     start_coordinates = start["geometry"]["coordinates"]
     end_coordinates = end["geometry"]["coordinates"]
-    lon1 = radians(float(start_coordinates[0]))
-    lon2 = radians(float(end_coordinates[0]))
-    lat1 = radians(float(start_coordinates[1]))
-    lat2 = radians(float(end_coordinates[1]))
+    lat1 = radians(float(start_coordinates[0]))
+    lat2 = radians(float(end_coordinates[0]))
+    lon1 = radians(float(start_coordinates[1]))
+    lon2 = radians(float(end_coordinates[1]))
+    
 
     a = sin(lon2 - lon1) * cos(lat2)
 
@@ -112,13 +113,13 @@ def distance(point1: Feature, point2: Feature, units: str = "km"):
     coordinates1 = get_coord(point1)
     coordinates2 = get_coord(point2)
 
-    dlat = radians((coordinates2[1] - coordinates1[1]))
+    dlat = radians((coordinates2[0] - coordinates1[0]))
 
-    dlon = radians((coordinates2[0] - coordinates1[0]))
+    dlon = radians((coordinates2[1] - coordinates1[1]))
 
-    lat1 = radians(coordinates1[1])
+    lat1 = radians(coordinates1[0])
 
-    lat2 = radians(coordinates2[1])
+    lat2 = radians(coordinates2[0])
 
     a = pow(sin(dlat / 2), 2) + pow(sin(dlon / 2), 2) * cos(lat1) * cos(lat2)
     b = 2 * atan2(sqrt(a), sqrt(1 - a))
