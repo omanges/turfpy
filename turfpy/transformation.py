@@ -604,9 +604,9 @@ def transform_rotate(
         coord, coord_index, feature_index, multi_feature_index, geometry_index
     ):
         nonlocal pivot, angle
-        initial_angle = rhumb_bearing(GeoPoint(pivot), GeoPoint(coord))
+        initial_angle = rhumb_bearing(GeoPoint(pivot), GeoPoint(coord, precision=10))
         final_angle = initial_angle + angle
-        distance = rhumb_distance(GeoPoint(pivot), GeoPoint(coord))
+        distance = rhumb_distance(GeoPoint(pivot), GeoPoint(coord, precision=10))
         new_coords = get_coord(rhumb_destination(GeoPoint(pivot), distance, final_angle))
         coord[0] = new_coords[0]
         coord[1] = new_coords[1]
@@ -671,7 +671,7 @@ def transform_translate(
     ):
         nonlocal distance, direction, units, z_translation
         new_coords = get_coord(
-            rhumb_destination(GeoPoint(coord), distance, direction, {"units": units})
+            rhumb_destination(GeoPoint(coord, precision=10), distance, direction, {"units": units})
         )
         coord[0] = new_coords[0]
         coord[1] = new_coords[1]
@@ -743,8 +743,8 @@ def scale(feature, factor, origin):
         coord, coord_index, feature_index, multi_feature_index, geometry_index
     ):
         nonlocal factor, origin
-        original_distance = rhumb_distance(GeoPoint(origin), GeoPoint(coord))
-        bearing = rhumb_bearing(GeoPoint(origin), GeoPoint(coord))
+        original_distance = rhumb_distance(GeoPoint(origin), GeoPoint(coord, precision=10))
+        bearing = rhumb_bearing(GeoPoint(origin), GeoPoint(coord, precision=10))
         new_distance = original_distance * factor
         new_coord = get_coord(rhumb_destination(GeoPoint(origin), new_distance, bearing))
         coord[0] = new_coord[0]
