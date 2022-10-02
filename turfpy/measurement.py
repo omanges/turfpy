@@ -284,7 +284,7 @@ def center(geojson, properties: Optional[dict] = None) -> Feature:
     x = (bounding_box[0] + bounding_box[2]) / 2
     y = (bounding_box[1] + bounding_box[3]) / 2
 
-    point = Point((x, y))
+    point = Point((x, y), precision=10)
 
     center_feature = Feature(geometry=point)
 
