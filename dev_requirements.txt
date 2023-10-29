@@ -1,17 +1,19 @@
 #test
-pytest
-mypy
-coverage
-black
-mypy
-pytest-cov
-pytest-mypy
-pytest-flake8
-isort
+pytest==7.4.3
+mypy==1.6.1
+coverage==7.3.2
+black==23.12.1
+pytest-cov==4.1.0
+pytest-mypy==0.10.3
+pytest-flake8==1.1.1
+isort==5.12.0
 Sphinx>=2.4.0
-sphinx-rtd-theme
+sphinx-rtd-theme==7.2.6
 jupyter-sphinx==0.2.4a1
-ipyleaflet
+ipyleaflet==0.17.4
+setuptools==61.0
 # optional dependencies required for line_intersect
-geopandas
-pygeos
+geopandas==0.14.0
+pygeos==0.14
+# code commits
+commitizen==3.12.0
