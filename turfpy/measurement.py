@@ -712,7 +712,7 @@ def _point_on_segment(x, y, x1, y1, x2, y2):
 # ------------ boolean point in polygon ----------------#
 
 
-def boolean_point_in_polygon(point, polygon, ignore_boundary=False):
+def boolean_point_in_polygon(point:Point, polygon:Polygon, ignore_boundary=False):
     """
     Takes a Point or a Point Feature and Polygon or Polygon Feature as input and returns
     True if Point is in given Feature.
@@ -1359,3 +1359,68 @@ def check_each_point(point, polygons, results):
             results.append(point)
 
     geom_each(polygons, __callback_geom_each)
+
+def boolean_point_on_line(pt: Point, line: Union[LineString, List[Point]], options: dict = {}):
+    # Normalize inputs
+    pt_coords = get_coord(pt)
+    line_coords = get_coords(line)
+
+    ignore_end_vertices = options.get("ignoreEndVertices", False)
+    epsilon = options.get("epsilon")
+
+    for i in range(len(line_coords) - 1):
+        ignore_boundary = False
+        if ignore_end_vertices:
+            if i == 0:
+                ignore_boundary = "start"
+            if i == len(line_coords) - 2:
+                ignore_boundary = "end"
+            if i == 0 and i + 1 == len(line_coords) - 1:
+                ignore_boundary = "both"
+
+        if is_point_on_line_segment(line_coords[i], line_coords[i + 1], pt_coords, ignore_boundary, epsilon):
+            return True
+
+    return False
+
+def is_point_on_line_segment(line_segment_start, line_segment_end, pt, exclude_boundary, epsilon=None):
+    x = pt[0]
+    y = pt[1]
+    x1 = line_segment_start[0]
+    y1 = line_segment_start[1]
+    x2 = line_segment_end[0]
+    y2 = line_segment_end[1]
+    dxc = x - x1
+    dyc = y - y1
+    dxl = x2 - x1
+    dyl = y2 - y1
+    cross = dxc * dyl - dyc * dxl
+
+    if epsilon is not None:
+        if abs(cross) > epsilon:
+            return False
+    elif cross != 0:
+        return False
+
+    if not exclude_boundary:
+        if abs(dxl) >= abs(dyl):
+            return (x1 <= x <= x2 if dxl > 0 else x2 <= x <= x1) and (y1 <= y <= y2 if dyl > 0 else y2 <= y <= y1)
+        else:
+            return (y1 <= y <= y2 if dyl > 0 else y2 <= y <= y1) and (x1 <= x <= x2 if dxl > 0 else x2 <= x <= x1)
+    elif exclude_boundary == "start":
+        if abs(dxl) >= abs(dyl):
+            return (x1 < x <= x2 if dxl > 0 else x2 <= x < x1) and (y1 < y <= y2 if dyl > 0 else y2 <= y < y1)
+        else:
+            return (y1 < y <= y2 if dyl > 0 else y2 <= y < y1) and (x1 < x <= x2 if dxl > 0 else x2 <= x < x1)
+    elif exclude_boundary == "end":
+        if abs(dxl) >= abs(dyl):
+            return (x1 <= x < x2 if dxl > 0 else x2 < x < x1) and (y1 <= y < y2 if dyl > 0 else y2 < y < y1)
+        else:
+            return (y1 <= y < y2 if dyl > 0 else y2 < y < y1) and (x1 <= x < x2 if dxl > 0 else x2 < x < x1)
+    elif exclude_boundary == "both":
+        if abs(dxl) >= abs(dyl):
+            return (x1 < x < x2 if dxl > 0 else x2 < x < x1) and (y1 < y < y2 if dyl > 0 else y2 < y < y1)
+        else:
+            return (y1 < y < y2 if dyl > 0 else y2 < y < y1) and (x1 < x < x2 if dxl > 0 else x2 < x < x1)
+    return False
+

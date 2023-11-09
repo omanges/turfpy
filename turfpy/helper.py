@@ -77,6 +77,12 @@ def get_coord(coord):
         return coord["coordinates"]
     elif (
         isinstance(coord, dict)
+        and coord["coordinates"]
+        and coord["type"] == "Point"
+    ):
+        return coord["coordinates"]
+    elif (
+        isinstance(coord, dict)
         and coord["geometry"]
         and coord["geometry"]["type"] == "Point"
     ):
