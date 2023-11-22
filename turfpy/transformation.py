@@ -18,7 +18,7 @@ from scipy.spatial import Delaunay, Voronoi
 from shapely import geometry as geometry
 from shapely.geometry import LineString as ShapelyLineString
 from shapely.geometry import MultiPoint, MultiPolygon, Point, mapping, shape
-from shapely.ops import cascaded_union, clip_by_rect, polygonize, unary_union
+from shapely.ops import clip_by_rect, polygonize, unary_union
 
 from turfpy.helper import get_coord, get_coords, get_geom, get_type, length_to_degrees
 from turfpy.measurement import (
@@ -280,7 +280,7 @@ def union(
             if "properties" in f.keys():
                 properties_list.append(f["properties"])
 
-    result = cascaded_union(shapes)
+    result = unary_union(shapes)
     result = mapping(result)
     properties = merge_dict(properties_list)
 
@@ -351,7 +351,7 @@ def _alpha_shape(points, alpha):
 
     m = geometry.MultiLineString(edge_points)
     triangles = list(polygonize(m))
-    return cascaded_union(triangles), edge_points
+    return unary_union(triangles), edge_points
 
 
 def get_points(features):
