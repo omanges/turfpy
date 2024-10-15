@@ -52,6 +52,10 @@ It supports below features:
 
 - [Random](https://github.com/omanges/turfpy/blob/master/random.md)
 
+- [Feature Conversion](https://github.com/omanges/turfpy/blob/master/feature_conversion.md)
+
+- [Boolean](https://github.com/omanges/turfpy/blob/master/boolean.md)
+
 ## Documentation
 
 Documentation can be found at: [docs](https://turfpy.readthedocs.io/en/latest/)
