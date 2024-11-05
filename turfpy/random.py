@@ -4,6 +4,7 @@ generate some random spatial data.
 This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
+
 import random
 
 from geojson import Feature, FeatureCollection, Point

@@ -4,6 +4,7 @@ understand the patterns and relationships of geographic features.
 This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
+
 import copy
 import itertools
 import math

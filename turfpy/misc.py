@@ -3,6 +3,7 @@ This module implements some of the spatial analysis techniques and processes use
 analyse geojson linestring. This is mainly inspired by turf.js Misc section.
 link: http://turfjs.org/
 """
+
 from functools import reduce
 from typing import List, Union
 

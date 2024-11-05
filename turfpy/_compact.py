@@ -3,6 +3,7 @@ This module is used to check if set variables which
 can be used to check whether a dependency is installed
 or not.
 """
+
 HAS_PYGEOS = None
 
 HAS_GEOPANDAS = None
