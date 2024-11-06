@@ -9,7 +9,8 @@ import concurrent.futures
 from functools import partial
 from math import asin, atan2, cos, degrees, log, pi, pow, radians, sin, sqrt, tan
 from multiprocessing import Manager
-from typing import List, Optional, Union
+from multiprocessing.managers import ListProxy
+from typing import Optional, Union
 
 from geojson import (
     Feature,
@@ -425,7 +426,7 @@ def destination(
 # ----------- Centroid --------------#
 
 
-def centroid(geojson, properties: dict = None) -> Feature:
+def centroid(geojson, properties: dict = {}) -> Feature:
     """
     Takes one or more features and calculates the centroid using the mean of all vertices.
 
@@ -1332,7 +1333,7 @@ def points_within_polygon(
         points = FeatureCollection([points])
 
     manager = Manager()
-    results: List[dict] = manager.list()
+    results: ListProxy[dict] = manager.list()
 
     part_func = partial(
         check_each_point,
