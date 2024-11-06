@@ -1,6 +1,6 @@
 Boolean Intersects 
 ==================
-Takes two features and returns TRUE if the intersection of the two geometries is NOT an empty set.
+Takes two features and returns (TRUE) if the intersection of the two geometries is NOT an empty set.
 
 Example
 -------

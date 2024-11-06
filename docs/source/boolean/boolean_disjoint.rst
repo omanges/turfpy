@@ -1,6 +1,6 @@
 Boolean Disjoint 
 =================
-Takes two features and returns TRUE if the two geometries do not touch or overlap.
+Takes two features and returns (TRUE) if the two geometries do not touch or overlap.
 
 Example
 -------

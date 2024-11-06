@@ -51,9 +51,9 @@ Interactive Example
     feature_2 = Feature(geometry=geometry_2)
     feature_collection = FeatureCollection([feature_1, feature_2])
     geo_json = GeoJSON(data=feature_collection)
-    watercolor = basemap_to_tiles(basemaps.Stamen.Watercolor)
+    mapnik = basemap_to_tiles(basemaps.OpenStreetMap.Mapnik)
 
-    m = Map(layers=(watercolor,), center=[20.04303061200023, -11.832275390625002], zoom=2)
+    m = Map(layers=(mapnik,), center=[20.04303061200023, -11.832275390625002], zoom=2)
 
     m.add_layer(geo_json)
 

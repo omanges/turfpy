@@ -1,7 +1,6 @@
 Polygon to Line
-=============
+================
 Takes a Polygon or MultiPolygon and convert it to a line.
-
 
 Example
 -------
