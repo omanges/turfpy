@@ -7,6 +7,7 @@ link: http://turfjs.org/
 from functools import reduce
 from typing import List, Union
 
+import geopandas
 from geojson import (
     Feature,
     FeatureCollection,
@@ -18,7 +19,6 @@ from geojson import (
 )
 from shapely.geometry import mapping, shape
 
-import turfpy._compact as compat
 from turfpy.helper import convert_angle_to_360, get_coord, get_coords, get_type
 from turfpy.measurement import bearing, destination, distance
 from turfpy.meta import coord_each, flatten_each
@@ -49,19 +49,6 @@ def line_intersect(
     >>> l2 = Feature(geometry=LineString([[123, -18], [131, -14]]))
     >>> line_intersect(l1, l2)
     """
-    if not compat.HAS_GEOPANDAS:
-        raise ImportError(
-            "line_intersect requires `Spatial indexes` for which it "
-            "requires `geopandas` and either `rtree` or `pygeos`. "
-            "See installation instructions at https://geopandas.org/install.html"
-        )
-    elif not compat.HAS_PYGEOS and not compat.HAS_RTREE:
-        raise ImportError(
-            "line_intersect requires `Spatial indexes` for which it "
-            "requires `geopandas` and either `rtree` or `pygeos`. "
-            "See installation instructions at https://geopandas.org/install.html"
-        )
-    import geopandas  # noqa
 
     unique = set()
     results: List[Feature] = []
