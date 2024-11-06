@@ -13,4 +13,3 @@ jupyter-sphinx==0.5.3
 ipyleaflet==0.19.2
 # optional dependencies required for line_intersect
 geopandas==1.0.1
-pygeos==0.14
