@@ -85,8 +85,10 @@ def get_coord(coord):
         raise Exception("coord must be GeoJSON Point or an Array of numbers")
 
 
-def get_geom(geojson):
-    """#TODO: Add description"""
+def get_geom(geojson: Feature) -> Feature:
+    """
+    Return geometry object from a GeoJSON object.
+    """
     if geojson["type"] == "Feature":
         return geojson["geometry"]
     return geojson

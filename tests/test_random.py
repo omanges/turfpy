@@ -1,6 +1,7 @@
 """
 Test module for randoms.
 """
+
 from geojson import Feature, Point
 
 from turfpy.measurement import bbox, boolean_point_in_polygon

@@ -63,6 +63,18 @@ A Python library for performing geospatial data analysis which reimplements `tur
   Line Offset <transformations/line_offset>
   Voronoi <transformations/voronoi>
 
+.. toctree::
+  :maxdepth: 1
+  :caption: Boolean
+
+  Boolean Disjoint <boolean/boolean_disjoint>
+  Boolean Intersects <boolean/boolean_intersects>
+
+.. toctree::
+  :maxdepth: 1
+  :caption: Feature Conversion
+
+  Polygon To Line <feature_conversion/polygon_to_line>
 
 .. toctree::
   :maxdepth: 1

@@ -4,6 +4,7 @@ understand the patterns and relationships of geographic features.
 This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
+
 import copy
 import itertools
 import math
@@ -18,7 +19,7 @@ from scipy.spatial import Delaunay, Voronoi
 from shapely import geometry as geometry
 from shapely.geometry import LineString as ShapelyLineString
 from shapely.geometry import MultiPoint, MultiPolygon, Point, mapping, shape
-from shapely.ops import cascaded_union, clip_by_rect, polygonize, unary_union
+from shapely.ops import clip_by_rect, polygonize, unary_union
 
 from turfpy.helper import get_coord, get_coords, get_geom, get_type, length_to_degrees
 from turfpy.measurement import (
@@ -100,6 +101,26 @@ def bbox_clip(geojson: Feature, bbox: list) -> Feature:
     return bb_clip
 
 
+def _enforce_right_hand_rule(geojson_feature: Feature) -> Feature:
+    """
+    Ensure that the polygon follows the right-hand rule for coordinates.
+    """
+
+    feature = geojson_feature
+
+    if geojson_feature["type"] == "Polygon":
+        feature = shape(geojson_feature)
+        if not feature.exterior.is_ccw:
+            reversed_coords = feature.exterior.coords[::-1]
+            polygon = Polygon(reversed_coords)
+            new_coords = [list(coord) for coord in polygon["coordinates"]]
+            new_feature = {"type": "Polygon", "coordinates": [new_coords]}
+
+            return new_feature
+
+    return feature
+
+
 def intersect(features: Union[List[Feature], FeatureCollection]) -> Feature:
     """
     Takes polygons and finds their intersection
@@ -156,6 +177,8 @@ def intersect(features: Union[List[Feature], FeatureCollection]) -> Feature:
         intersection = shape_value.intersection(intersection)
 
     intersection = mapping(intersection)
+
+    intersection = _enforce_right_hand_rule(intersection)
 
     if (
         len(intersection.get("coordinates", [])) == 0
@@ -280,7 +303,7 @@ def union(
             if "properties" in f.keys():
                 properties_list.append(f["properties"])
 
-    result = cascaded_union(shapes)
+    result = unary_union(shapes)
     result = mapping(result)
     properties = merge_dict(properties_list)
 
@@ -322,7 +345,7 @@ def _alpha_shape(points, alpha):
     edge_points = []
     # loop over triangles:
     # ia, ib, ic = indices of corner points of the triangle
-    for ia, ib, ic in tri.vertices:
+    for ia, ib, ic in tri.simplices:
         pa = coords[ia]
         pb = coords[ib]
         pc = coords[ic]
@@ -351,7 +374,7 @@ def _alpha_shape(points, alpha):
 
     m = geometry.MultiLineString(edge_points)
     triangles = list(polygonize(m))
-    return cascaded_union(triangles), edge_points
+    return unary_union(triangles), edge_points
 
 
 def get_points(features):
@@ -450,7 +473,7 @@ def convex(features: Union[Feature, FeatureCollection]):
 
 
 def dissolve(
-    features: Union[List[Feature], FeatureCollection], property_name: str = None
+    features: Union[List[Feature], FeatureCollection], property_name: Optional[str] = None
 ) -> FeatureCollection:
     """
     Take FeatureCollection or list of features to dissolve based on
@@ -564,7 +587,7 @@ def difference(feature_1: Feature, feature_2: Feature) -> Feature:
 def transform_rotate(
     feature: Union[List[Feature], FeatureCollection],
     angle: float,
-    pivot: list = None,
+    pivot: Optional[list] = None,
     mutate: bool = False,
 ):
     """
@@ -1058,7 +1081,8 @@ def voronoi(
     convex_hull = MultiPoint([Point(i) for i in points]).convex_hull.buffer(2)
     result = MultiPolygon([poly.intersection(convex_hull) for poly in polygonize(lines)])
     result = MultiPolygon(
-        [p for p in result] + [p for p in convex_hull.difference(unary_union(result))]
+        [p for p in result.geoms]
+        + [p for p in convex_hull.difference(unary_union(result)).geoms]
     )
     if bbox is not None:
         w, s, e, n = bbox

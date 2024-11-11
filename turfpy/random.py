@@ -4,12 +4,14 @@ generate some random spatial data.
 This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
+
 import random
+from typing import Any, Optional
 
 from geojson import Feature, FeatureCollection, Point
 
 
-def random_position(bbox: list = None):
+def random_position(bbox: Optional[list[Any]] = None):
     """
     Generates a random position, if bbox provided then the
     generated position will be in the bbox.
@@ -51,7 +53,7 @@ def coord_in_bbox(bbox: list):
     ]
 
 
-def random_points(count: int = 1, bbox: list = None) -> FeatureCollection:
+def random_points(count: int = 1, bbox: Optional[list[Any]] = None) -> FeatureCollection:
     """
     Generates geojson random points, if bbox provided then the
     generated points will be in the bbox.
