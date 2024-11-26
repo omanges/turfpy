@@ -454,7 +454,7 @@ def centroid(geojson, properties: dict = {}) -> Feature:
         y_sum += coord[1]
         length += 1
 
-    coord_each(geojson, _callback_coord_each)
+    coord_each(geojson, _callback_coord_each, True)
     point = Point((x_sum / length, y_sum / length))
     return Feature(geometry=point, properties=properties if properties else {})
 
