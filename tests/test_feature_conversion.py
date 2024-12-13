@@ -12,8 +12,8 @@ from turfpy.feature_conversion import polygon_to_line
 # Define directories
 current_dir = Path(__file__).resolve().parent
 directories = {
-    "in": current_dir / "feature_conversion_polygon_to_line_test" / "in",
-    "out": current_dir / "feature_conversion_polygon_to_line_test" / "out",
+    "in": current_dir / "test_files/feature_conversion_polygon_to_line_test" / "in",
+    "out": current_dir / "test_files/feature_conversion_polygon_to_line_test" / "out",
 }
 
 # Load fixtures
@@ -32,7 +32,6 @@ for filename in os.listdir(directories["in"]):
 
 
 class TestPolygonToLine(unittest.TestCase):
-
     def test_polygon_to_linestring(self):
         for fixture in fixtures:
             name = fixture["name"]

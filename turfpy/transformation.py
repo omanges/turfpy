@@ -250,7 +250,7 @@ def merge_dict(dicts: list):
 
 
 def union(
-    features: Union[List[Feature], FeatureCollection]
+    features: Union[List[Feature], FeatureCollection],
 ) -> Union[Feature, FeatureCollection]:
     """
     Given list of features or ``FeatureCollection`` return union of those.
@@ -394,7 +394,7 @@ def get_points(features):
 
 
 def get_ext_points(geom, points):
-    if geom.type == "Point":
+    if geom.geom_type == "Point":
         for p in geom.coords:
             points.append(Point(p))
     elif geom.type == "MultiPoint":
@@ -473,7 +473,8 @@ def convex(features: Union[Feature, FeatureCollection]):
 
 
 def dissolve(
-    features: Union[List[Feature], FeatureCollection], property_name: Optional[str] = None
+    features: Union[List[Feature], FeatureCollection],
+    property_name: Optional[str] = None,
 ) -> FeatureCollection:
     """
     Take FeatureCollection or list of features to dissolve based on

@@ -96,7 +96,7 @@ def line_intersect(
 
 
 def line_segment(
-    geojson: Union[LineString, Polygon, MultiLineString, MultiPolygon, Feature]
+    geojson: Union[LineString, Polygon, MultiLineString, MultiPolygon, Feature],
 ) -> FeatureCollection:
     """
     Creates a FeatureCollection of 2-vertex LineString segments from a
@@ -186,7 +186,8 @@ def create_segments(coords, properties):
 
     def callback(current_coords, previous_coords):
         segment = Feature(
-            geometry=LineString([previous_coords, current_coords]), properties=properties
+            geometry=LineString([previous_coords, current_coords]),
+            properties=properties,
         )
         segment.bbox = bbox(previous_coords, current_coords)
         segments.append(segment)

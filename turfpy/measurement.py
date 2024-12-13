@@ -5,11 +5,7 @@ This is mainly inspired by turf.js.
 link: http://turfjs.org/
 """
 
-import concurrent.futures
-from functools import partial
 from math import asin, atan2, cos, degrees, log, pi, pow, radians, sin, sqrt, tan
-from multiprocessing import Manager
-from multiprocessing.managers import ListProxy
 from typing import Optional, Union
 
 from geojson import (
@@ -29,7 +25,6 @@ from turfpy.helper import (
     feature_of,
     get_coord,
     get_coords,
-    get_geom,
     get_type,
     length_to_radians,
     radians_to_length,
@@ -37,7 +32,6 @@ from turfpy.helper import (
 from turfpy.meta import (
     coord_each,
     feature_each,
-    geom_each,
     geom_reduce,
     segment_each,
     segment_reduce,
@@ -142,7 +136,7 @@ def area(
         MultiPolygon,
         Feature,
         FeatureCollection,
-    ]
+    ],
 ):
     """
     This function calculates the area of the Geojson object given as input.
@@ -354,10 +348,19 @@ def length(geojson, units: str = "km"):
     >>> length(ls)
     """
 
-    def _callback_segment_reduce(previous_value, segment):
-        coords = segment["geometry"]["coordinates"]
+    def _callback_segment_reduce(
+        previous_value,
+        segment,
+        feature_index,
+        multi_feature_index,
+        geometry_index,
+        segment_index,
+    ):
+        coords = segment["coordinates"]
         return previous_value + distance(
-            Feature(geometry=Point(coords[0])), Feature(geometry=Point(coords[1])), units
+            Feature(geometry=Point(coords[0])),
+            Feature(geometry=Point(coords[1])),
+            units,
         )
 
     return segment_reduce(geojson, _callback_segment_reduce, 0)
@@ -509,7 +512,6 @@ def along(line: Feature, dist, unit: str = "km") -> Feature:
                 )
                 return interpolated
         else:
-
             travelled += distance(
                 Feature(geometry=Point(coords[i])),
                 Feature(geometry=Point(coords[i + 1])),
@@ -621,6 +623,8 @@ def point_on_feature(geojson) -> Feature:
     >>> feature = Feature(geometry=point)
     >>> point_on_feature(feature)
     """
+    from turfpy.boolean import boolean_point_in_polygon
+
     fc = _normalize(geojson)
 
     cent = centroid(fc)
@@ -679,7 +683,7 @@ def point_on_feature(geojson) -> Feature:
                     k += 1
                 j += 1
         elif geom["type"] == "Polygon" or geom["type"] == "MultiPolygon":
-            if boolean_point_in_polygon(cent, geom):
+            if boolean_point_in_polygon(cent, fc["features"][i]):
                 on_surface = True
         i += 1
 
@@ -707,95 +711,6 @@ def _point_on_segment(x, y, x1, y1, x2, y2):
     ap = sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1))
     pb = sqrt((x2 - x) * (x2 - x) + (y2 - y) * (y2 - y))
     return ab == (ap + pb)
-
-
-# -------------------------------#
-
-# ------------ boolean point in polygon ----------------#
-
-
-def boolean_point_in_polygon(point, polygon, ignore_boundary=False):
-    """
-    Takes a Point or a Point Feature and Polygon or Polygon Feature as input and returns
-    True if Point is in given Feature.
-
-    :param point: Point or Point Feature.
-    :param polygon: Polygon or Polygon Feature.
-    :param ignore_boundary: [Optional] default value is False, specify whether to exclude
-        boundary of the given polygon or not.
-    :return: True if the given Point is in Polygons else False
-
-    Example:
-
-    >>> from turfpy.measurement import boolean_point_in_polygon
-    >>> from geojson import Point, MultiPolygon, Feature
-    >>> point = Feature(geometry=Point((-77, 44)))
-    >>> polygon = Feature(geometry=MultiPolygon([([(-81, 41), (-81, 47), (-72, 47),
-    (-72, 41), (-81, 41)],),
-    >>> ([(3.78, 9.28), (-130.91, 1.52), (35.12, 72.234), (3.78, 9.28)],)]))
-    >>> boolean_point_in_polygon(point, polygon)
-    """
-    if not point:
-        raise Exception("point is required")
-    if not polygon:
-        raise Exception("polygon is required")
-
-    pt = get_coord(point)
-    geom = get_geom(polygon)
-    geo_type = geom["type"]
-    bbox = polygon.get("bbox", None)
-    polys = geom["coordinates"]
-
-    if bbox and not in_bbox(pt, bbox):
-        return False
-
-    if geo_type == "Polygon":
-        polys = [polys]
-
-    inside_poly = False
-
-    for i in range(0, len(polys)):
-        if in_ring(pt, polys[i][0], ignore_boundary):
-            in_hole = False
-            k = 1
-            while k < len(polys[i]) and not in_hole:
-                if in_ring(pt, polys[i][k], not ignore_boundary):
-                    in_hole = True
-                k += 1
-            if not in_hole:
-                inside_poly = True
-
-    return inside_poly
-
-
-def in_ring(pt, ring, ignore_boundary):
-    is_inside = False
-    if ring[0][0] == ring[len(ring) - 1][0] and ring[0][1] == ring[len(ring) - 1][1]:
-        ring = ring[0 : len(ring) - 1]
-    j = len(ring) - 1
-    for i in range(0, len(ring)):
-        xi = ring[i][0]
-        yi = ring[i][1]
-        xj = ring[j][0]
-        yj = ring[j][1]
-        on_boundary = (
-            (pt[1] * (xi - xj) + yi * (xj - pt[0]) + yj * (pt[0] - xi) == 0)
-            and ((xi - pt[0]) * (xj - pt[0]) <= 0)
-            and ((yi - pt[1]) * (yj - pt[1]) <= 0)
-        )
-        if on_boundary:
-            return not ignore_boundary
-        intersect = ((yi > pt[1]) != (yj > pt[1])) and (
-            pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi
-        )
-        if intersect:
-            is_inside = not is_inside
-        j = i
-    return is_inside
-
-
-def in_bbox(pt, bbox):
-    return bbox[0] <= pt[0] <= bbox[2] and bbox[1] <= pt[1] <= bbox[3]
 
 
 # -------------------------------#
@@ -1018,8 +933,8 @@ def point_to_line_distance(point: Feature, line: Feature, units="km", method="ge
         segment_index,
     ):
         nonlocal options, distance
-        a = current_segment["geometry"]["coordinates"][0]
-        b = current_segment["geometry"]["coordinates"][1]
+        a = current_segment["coordinates"][0]
+        b = current_segment["coordinates"][1]
         d = distance_to_segment(p, a, b, options)
         if d < distance:
             distance = d
@@ -1296,68 +1211,3 @@ def square(bbox: list):
             horizontal_midpoint + ((north - south) / 2),
             north,
         ]
-
-
-# -------------------------------#
-
-
-def points_within_polygon(
-    points: Union[Feature, FeatureCollection],
-    polygons: Union[Feature, FeatureCollection],
-    chunk_size: int = 1,
-) -> FeatureCollection:
-    """Find Point(s) that fall within (Multi)Polygon(s).
-
-    This function takes two inputs GeoJSON Feature :class:`geojson.Point` or
-    :class:`geojson.FeatureCollection` of Points and GeoJSON Feature
-    :class:`geojson.Polygon` or Feature :class:`geojson.MultiPolygon` or
-    FeatureCollection of :class:`geojson.Polygon` or Feature
-    :class:`geojson.MultiPolygon`. and returns all points with in in those
-    Polygon(s) or (Multi)Polygon(s).
-
-    :param points: A single GeoJSON ``Point`` feature or FeatureCollection of Points.
-    :param polygons: A Single GeoJSON Polygon/MultiPolygon or FeatureCollection of
-        Polygons/MultiPolygons.
-    :param chunk_size: Number of chunks each process to handle. The default value is
-            1, for a large number of features please use `chunk_size` greater than 1
-            to get better results in terms of performance.
-    :return: A :class:`geojson.FeatureCollection` of Points.
-    """
-    if not points:
-        raise Exception("Points cannot be empty")
-
-    if points["type"] == "Point":
-        points = FeatureCollection([Feature(geometry=points)])
-
-    if points["type"] == "Feature":
-        points = FeatureCollection([points])
-
-    manager = Manager()
-    results: ListProxy[dict] = manager.list()
-
-    part_func = partial(
-        check_each_point,
-        polygons=polygons,
-        results=results,
-    )
-
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        for _ in executor.map(part_func, points["features"], chunksize=chunk_size):
-            pass
-
-    return FeatureCollection(list(results))
-
-
-def check_each_point(point, polygons, results):
-    def __callback_geom_each(
-        current_geometry, feature_index, feature_properties, feature_bbox, feature_id
-    ):
-        contained = False
-        if boolean_point_in_polygon(point, current_geometry):
-            contained = True
-
-        if contained:
-            nonlocal results
-            results.append(point)
-
-    geom_each(polygons, __callback_geom_each)

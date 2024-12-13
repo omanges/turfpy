@@ -70,6 +70,12 @@ A Python library for performing geospatial data analysis which reimplements `tur
   Boolean Disjoint <boolean/boolean_disjoint>
   Boolean Intersects <boolean/boolean_intersects>
 
+  .. toctree::
+  :maxdepth: 1
+  :caption: Joins
+
+  Points Within Polygon <joins/points_within_polygon>
+
 .. toctree::
   :maxdepth: 1
   :caption: Feature Conversion

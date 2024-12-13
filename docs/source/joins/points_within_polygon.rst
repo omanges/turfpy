@@ -9,7 +9,7 @@ Interactive Example
 .. jupyter-execute::
 
     from geojson import Feature, FeatureCollection, Point, Polygon
-    from turfpy.measurement import points_within_polygon
+    from turfpy.joins import points_within_polygon
     from ipyleaflet import Map, GeoJSON
 
     p1 = Feature(geometry=Point((-46.6318, -23.5523)))

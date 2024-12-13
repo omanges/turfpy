@@ -393,7 +393,6 @@ def __find_hole_bridge(hole, outer_node):
             and p.x >= mx
             and __point_in_triangle(hx_or_qx, hy, mx, my, qx_or_hx, hy, p.x, p.y)
         ):
-
             tan = abs(hy - p.y) / (hx - p.x)  # tangential
 
             if (tan < tanMin or (tan == tanMin and p.x > m.x)) and locallyInside(p, hole):
@@ -460,7 +459,6 @@ def __sort_linked(_list):
             qSize = inSize
 
             while pSize > 0 or (qSize > 0 and q):
-
                 if pSize == 0:
                     e = q
                     q = q.nextZ

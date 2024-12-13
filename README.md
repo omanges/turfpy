@@ -56,6 +56,8 @@ It supports below features:
 
 - [Boolean](https://github.com/omanges/turfpy/blob/master/boolean.md)
 
+- [Joins](https://github.com/omanges/turfpy/blob/master/joins.md)
+
 ## Documentation
 
 Documentation can be found at: [docs](https://turfpy.readthedocs.io/en/latest/)

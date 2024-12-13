@@ -4,7 +4,8 @@ Test module for randoms.
 
 from geojson import Feature, Point
 
-from turfpy.measurement import bbox, boolean_point_in_polygon
+from turfpy.boolean import boolean_point_in_polygon
+from turfpy.measurement import bbox
 from turfpy.random import random_points, random_position
 
 

@@ -1,8 +1,9 @@
-import math
-
 """
 This module will have common utilities.
 """
+
+import math
+
 from geojson import Feature, Point
 from geojson.geometry import Geometry
 

@@ -325,7 +325,6 @@ def test_transform_rotate():
 
 
 def test_transform_translate():
-
     f = Feature(geometry=Polygon([[[0, 29], [3.5, 29], [2.5, 32], [0, 29]]]))
 
     translate_feature = transform_translate(f, 100, 35, mutate=True)
