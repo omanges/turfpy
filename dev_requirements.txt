@@ -1,5 +1,5 @@
 #test
-pytest==8.3.3
+pytest==9.0.3
 mypy==1.13.0
 coverage==7.6.4
 black==24.10.0
